@@ -5,6 +5,9 @@ from typing import Annotated
 
 app = FastAPI()
 
+# NEXT TIME
+# TODO: Start with repo creation, implement db creation, populate db with SDAs and requirements
+
 
 @app.get("/")
 async def root():
@@ -62,11 +65,18 @@ async def create_trace_links(
     # If repo does not exist, return error
     # If one of the source or target artifact types does not exist in the database, return error
     # If trace method is not available, return error, inform about available trace methods
+    # Get all source artifacts of given type from the database
+    # Get all target artifacts of given type from the database
     # For each source artifact, find the related target artifacts and create trace links
-    # Apart from trace_method, there are natural trace links.
-    # for issue-pr, there is a natural trace link between issue and pr(linked prs for issue)
-    # for req-issue, there is a natural trace link between req and issue(req number in issue body)
-    # for issue-issue, there is a natural trace link between issues(traces issues for issue)
+    # Save trace links to the database
+        # Apart from trace_method, there are natural trace links.
+        # for issue-pr, there is a natural trace link between issue and pr(linked prs for issue)
+        # for req-issue, req-pr, there is a natural trace link between req and issue/pr(req number in issue/pr body)
+        # for issue-issue, there is a natural trace link between issues(traces issues for issue)
+    # TODO: How will we handle the case where there are multiple target artifacts for a single source artifact?
+    # TODO: Are we going to allow a list of source or target artifact types? Lets not mix them, 
+    #       if user wants such thing, let them make multiple requests
+    # TODO: trace methods -> tfidf, word_embeddings(from bert or LLM), direct llm training
     return {"message": "Trace links created"}
 
 # Let user select one of the created repos
