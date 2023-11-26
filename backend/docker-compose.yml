@@ -1,0 +1,20 @@
+services:
+  neo4j:
+    image: neo4j:5.13.0-community
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_dbms_memory_pagecache_size=1G
+      - NEO4J_dbms.memory.heap.initial_size=1G
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_security_procedures_unrestricted=algo.*,apoc.*
+      - CLASSPATH_PREFIX=/var/lib/neo4j/lib/dozerdb-plugin-5.13.0.0-alpha.1.jar
+    cap_add:
+      - SYS_RESOURCE
+    restart: unless-stopped
+    ports:
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - ./src/server/neo4j/conf/apoc.conf:/var/lib/neo4j/conf/apoc.conf
+      - ./src/server/neo4j/plugins:/var/lib/neo4j/plugins
+      - ./src/server/neo4j/dozerdb/dozerdb-plugin-5.13.0.0-alpha.1.jar:/var/lib/neo4j/lib/dozerdb-plugin-5.13.0.0-alpha.1.jar
