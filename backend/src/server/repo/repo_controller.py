@@ -33,7 +33,7 @@ class Repo(BaseModel):
 async def create_repo(
     repo_owner: Annotated[str, Form()],
     repo_name: Annotated[str, Form()],
-    requirements_file: Annotated[bytes, File()],
+    requirements_file: UploadFile,
     user: user_schema.User = Depends(get_current_user),
     database: Session = Depends(get_db),
 ):
@@ -43,6 +43,8 @@ async def create_repo(
         Populate it with the requirements from given requirements file.
     """
     # neo4j.create_db(user.id, repo_owner, repo_name)
+    # Acquire repo data from github
+    # Fetch requirements from given requirements file
     # populate_db_SDA(user.id, repo_owner, repo_name)
     # populate_db_requirements(user.id, repo_owner, repo_name, requirements_file)
     return {"message": "Repo created successfully"}
