@@ -48,16 +48,24 @@ class neo4jConnector:
             print(Config().neo4j_uri)
             raise e
 
-    def execute_query(self, query, params=None):
+    def execute_query(self, query, database, params=None):
         """ Execute neo4j query."""
         try:
-            with self.driver.session() as session:
+            with self.driver.session(database=database) as session:
                 result = session.execute_write(self.tx, query, params)
         except Exception as e:
             # print(query, params)
             raise e
 
-    def create_issue_from_json(self, json_file):
+    def create_database(self, database_name):
+        """ Create a new database."""
+        query = (f'''
+            CREATE DATABASE {database_name}
+        ''').format(database_name=database_name)
+
+        self.execute_query(query, 'system')
+
+    def create_issue_from_json(self, json_file, database):
         """ Create issue nodes from given json file."""
         query = (f'''
             CALL apoc.load.json('{json_file}') YIELD value as v 
@@ -66,11 +74,9 @@ class neo4jConnector:
             SET n = properties
             RETURN n
         ''').format(json_file=json_file)
-        params = {'json_file': json_file}
+        self.execute_query(query, database)
 
-        self.execute_query(query)
-
-    def create_artifact_nodes(self, artifacts, label):
+    def create_artifact_nodes(self, artifacts, label, database):
         """ Create artifact nodes from given json file."""
         query = (f'''
             UNWIND $artifacts AS properties
@@ -79,18 +85,18 @@ class neo4jConnector:
             RETURN n
         ''').format(label=label)
         params = {"artifacts": artifacts}
-        self.execute_query(query,params)
+        self.execute_query(query, database, params)
 
-    def link_commits_prs(self):
+    def link_commits_prs(self, database):
         query = '''
             MATCH (n:Commit), (p:PullRequest)
             where n.associatedPullRequests = p.number
             create (p)-[t:relatedCommit]->(n)
             RETURN * 
         '''
-        self.execute_query(query)
+        self.execute_query(query, database)
 
-    def create_indexes(self, label, field):
+    def create_indexes(self, label, field, database):
         index_name = f'{label}_{field}'
         field = f'n.{field}'
         query = (f'''
@@ -98,17 +104,16 @@ class neo4jConnector:
         ''').format(index_name=index_name, label=label, field=field)
         params = { "label": label, "field": field }
 
-        self.execute_query(query)
+        self.execute_query(query, database, params)
 
-    def clean_all_data(self):
+    def clean_all_data(self, database):
         query = '''
             MATCH (n)
             detach delete n
         '''
+        self.execute_query(query, database)
 
-        self.execute_query(query)
-
-    def filter_artifacts(self, date):
+    def filter_artifacts(self, date, database):
         query_issue = (f'''
             Match(n:Issue) 
             where date(n.createdAt) <= date("{date}")
@@ -124,12 +129,11 @@ class neo4jConnector:
             where date(n.createdAt) <= date("{date}")
             delete n
         ''').format(date=date)
-        params = {'date': date}
-        self.execute_query(query_issue)
-        self.execute_query(query_pr)
-        self.execute_query(query_commit)
+        self.execute_query(query_issue, database)
+        self.execute_query(query_pr, database)
+        self.execute_query(query_commit, database)
 
-    def create_traces_v3(self, traces, label):
+    def create_traces_v3(self, traces, label, database):
         query = (f'''
             UNWIND $traces AS trace
             MATCH (r:Requirement)
@@ -145,4 +149,4 @@ class neo4jConnector:
         ''').format(label=label)
 
         params = {'traces': traces}
-        self.execute_query(query, params)
+        self.execute_query(query, database, params)

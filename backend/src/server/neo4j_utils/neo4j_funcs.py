@@ -1,7 +1,7 @@
 """ This file contains the functions that interact with the neo4j database. """
 from neo4j.time import Date
 from server.artifacts import artifacts
-from server.neo4j.neo4j_connector import neo4jConnector
+from server.neo4j_utils.neo4j_connector import neo4jConnector
 
 # def populate_db_SDA(user_id, repo_owner, repo_name):
 #     """ Populate the database with SDAs(issue-pr for now) from the repository. """
@@ -14,7 +14,7 @@ from server.neo4j.neo4j_connector import neo4jConnector
 #     return {"message": "Repo created successfully"}
 
 
-def populate_db_requirements(user_id, repo_owner, repo_name, requirements_file):
+def populate_db_requirements(repo_owner, repo_name, database_name, requirements_file):
     """ Populate the database with requirements from given requirements file. """
     # Acquire repo data from github
     # Fetch requirements from given requirements file
@@ -23,6 +23,8 @@ def populate_db_requirements(user_id, repo_owner, repo_name, requirements_file):
         requirement['text'] = requirement['description']
     # Create neo4j nodes
     # neo4jConnector().create_artifact_nodes(data['data'], 'Requirement')
+    neo4jConnector().create_artifact_nodes(data['requirements'], 'Requirement', database_name)
+    neo4jConnector().create_indexes('Requirement', 'number', database_name)
 
 def comment_parser(comments):
     """ Parses the comments of an issue or pull request. """
@@ -33,7 +35,7 @@ def comment_parser(comments):
     return comment_list
 
 
-def populate_db_issues(user_id, repo_owner, repo_name):
+def populate_db_issues(repo_owner, repo_name, database_name):
     """ Populate the database with issues from given repository."""
     data = artifacts.get_all_pages('issues', repo_owner, repo_name)
     # data = json.loads(data)
@@ -84,11 +86,13 @@ def populate_db_issues(user_id, repo_owner, repo_name):
     # Or just clear the database and populate it with new data. each time. (docker for each user)
     # If same docker is used, then neo4j config must be changed to use different databases.
     # neo4jConnector().create_artifact_nodes(data['data'], 'Issue')
+    neo4jConnector().create_artifact_nodes(data['data'], 'Issue', database_name)
+    neo4jConnector().create_indexes('Issue', 'number', database_name)
 
 
 # TODO: Get commit data from pr['commits'] and create commit nodes.
 
-def populate_db_prs(user_id, repo_owner, repo_name):
+def populate_db_prs(repo_owner, repo_name, database_name):
     """ Populate the database with pull requests from given repository."""
     data = artifacts.get_all_pages('pullRequests', repo_owner, repo_name)
     # data = json.loads(data)
@@ -129,3 +133,5 @@ def populate_db_prs(user_id, repo_owner, repo_name):
 
     # Create neo4j nodes
     # neo4jConnector().create_artifact_nodes(data['pullRequests'], 'PullRequest')
+    neo4jConnector().create_artifact_nodes(data['data'], 'PullRequest', database_name)
+    neo4jConnector().create_indexes('PullRequest', 'number', database_name)
