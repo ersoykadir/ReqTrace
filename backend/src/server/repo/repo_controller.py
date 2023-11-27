@@ -1,16 +1,18 @@
-from fastapi import APIRouter, Depends, File, Form, UploadFile
-
+""" Repo controller"""
 from typing import Annotated
+from fastapi import APIRouter, Depends, Form, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from server.authentication.auth_utils import get_current_user
 from server.user import user_schema
 from server.database.database import get_db
+from server.neo4j_utils.neo4j_connector import neo4jConnector
+from server.neo4j_utils.neo4j_funcs import populate_db_issues, populate_db_prs, populate_db_requirements
 
 router = APIRouter(
-    prefix="/auth",
-    tags=["auth"],
+    prefix="/repo",
+    tags=["repo"],
     responses={404: {"description": "Not found"}},
 )
 
@@ -22,6 +24,11 @@ class Repo(BaseModel):
     pull_requests: bool
     requirements: bool
 
+# TODO: User privileges! How to allow only users who created the repo to access it?
+# neo4j has a user and roles system but it is not available in community edition, also it is not very flexible!
+
+# TODO: Data persistence! compose file set volume for data persistence
+
 
 # Get a public repository owner/name from the user
 # Should all users be able to see all repositories? No
@@ -29,7 +36,7 @@ class Repo(BaseModel):
 # So each database will belong to a user and represent a repository. 
 # That means there can be multiple databases for a single repository, with exactly the same data. Makes sense if users will do changes
 
-@router.post("/repos")
+@router.post("/")
 async def create_repo(
     repo_owner: Annotated[str, Form()],
     repo_name: Annotated[str, Form()],
@@ -43,8 +50,13 @@ async def create_repo(
         Populate it with the requirements from given requirements file.
     """
     # neo4j.create_db(user.id, repo_owner, repo_name)
+    database_name = f"{repo_owner}.{repo_name}.id{user.id}"
+    neo4jConnector().create_database(database_name) # TODO: What if database already exists? cypher gives error, detect it and handle it
     # Acquire repo data from github
-    # Fetch requirements from given requirements file
     # populate_db_SDA(user.id, repo_owner, repo_name)
+    populate_db_issues(repo_owner, repo_name, database_name)
+    populate_db_prs(repo_owner, repo_name, database_name)
+    # Fetch requirements from given requirements file
     # populate_db_requirements(user.id, repo_owner, repo_name, requirements_file)
+    populate_db_requirements(repo_owner, repo_name, database_name, requirements_file)
     return {"message": "Repo created successfully"}

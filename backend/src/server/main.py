@@ -4,6 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 from server.authentication import auth_controller
+from server.repo import repo_controller
 
 
 HOST = os.environ.get("HOST")
@@ -15,6 +16,7 @@ if HOST is None or PORT is None:
 app = FastAPI()
 
 app.include_router(auth_controller.router)
+app.include_router(repo_controller.router)
 
 if __name__ == "__main__":
     uvicorn.run(
