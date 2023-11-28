@@ -2,11 +2,9 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, Form, UploadFile
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
 from server.authentication.auth_utils import get_current_user
 from server.user import user_schema
-from server.database.database import get_db
+# from server.database.database import get_db
 from server.neo4j_utils.neo4j_connector import Neo4jConnector
 from server.neo4j_utils.neo4j_funcs import (
     populate_db_issues,

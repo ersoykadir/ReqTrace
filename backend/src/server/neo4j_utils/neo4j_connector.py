@@ -2,15 +2,13 @@
 from neo4j import GraphDatabase
 from server.config import Config
 
-# TODO: Create database function
+# Create database function
 #       You are not allowed to create multiple databases in community edition
 #       Opt1: Create a new docker for each user, and load new database data whenever user requests??
 #       Opt2: Create a new docker for each repository
 #       Opt3: Use another graph database that allows multiple databases in community edition
-# TODO: Create issues function, from json data or
-# TODO: Create artifacts function, from json data (populate db with SDAs)
-# TODO: Create requirements function, from json data (populate db with requirements)
-
+# --> Opt3 used with neo4j+dozerdb plugin
+# Create artifacts function, from json data (populate db with SDAs). DONE
 class Neo4jConnector:
     """ Neo4j connector class. """
     # Having single neo4j connection might be worse, must test!!!
