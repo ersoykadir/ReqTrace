@@ -1,15 +1,10 @@
 """ This file contains the functions that interact with the neo4j database. """
 from neo4j.time import Date
-from server.artifacts import artifacts
 from server.neo4j_utils.neo4j_connector import Neo4jConnector
-from server.config import Config
 
 
-def populate_db_requirements(database_name, requirements_file):
+def populate_db_requirements(data, database_name):
     """ Populate the database with requirements from given requirements file. """
-    # Acquire repo data from github
-    # Fetch requirements from given requirements file
-    data = artifacts.get_requirements(requirements_file)
     for requirement in data['data']:
         requirement['text'] = requirement['description']
     # Create neo4j nodes
@@ -25,10 +20,8 @@ def comment_parser(comments):
     return comment_list
 
 
-def populate_db_issues(repo_owner, repo_name, database_name):
+def populate_db_issues(data, repo_creation_date, database_name):
     """ Populate the database with issues from given repository."""
-    data = artifacts.get_all_pages('issues', repo_owner, repo_name)
-    # data = json.loads(data)
     for issue in data['data']:
         # Since neo4j does not support dictionaries as properties,
         # we need to convert the dictionaries to lists or strings.
@@ -61,7 +54,7 @@ def populate_db_issues(repo_owner, repo_name, database_name):
         issue['createdAt'] = Date.from_iso_format(issue['createdAt'][:10])
         if issue['closedAt'] is not None:
             issue['closedAt'] = Date.from_iso_format(issue['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(Config().repo_created_at[:10])
+        repo_creation_date = Date.from_iso_format(repo_creation_date[:10])
 
         # Calculate the weeks passed since the repo was created (Date.from_iso_format(date[:10]))
         issue['created_week'] = (issue['createdAt'] - repo_creation_date).days // 7
@@ -79,11 +72,8 @@ def populate_db_issues(repo_owner, repo_name, database_name):
 
 # TODO2: Get commit data from pr['commits'] and create commit nodes.
 
-def populate_db_prs(repo_owner, repo_name, database_name):
+def populate_db_prs(data, repo_creation_date, database_name):
     """ Populate the database with pull requests from given repository."""
-    data = artifacts.get_all_pages('pullRequests', repo_owner, repo_name)
-    # data = json.loads(data)
-
     for pr in data['data']:
         # Since neo4j does not support dictionaries as properties,
         # we need to convert the dictionaries to lists or strings.
@@ -110,7 +100,7 @@ def populate_db_prs(repo_owner, repo_name, database_name):
         pr['createdAt'] = Date.from_iso_format(pr['createdAt'][:10])
         if pr['closedAt'] is not None:
             pr['closedAt'] = Date.from_iso_format(pr['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(Config().repo_created_at[:10])
+        repo_creation_date = Date.from_iso_format(repo_creation_date[:10])
 
         # Calculate the weeks passed since the repo was created
         pr['created_week'] = (pr['createdAt'] - repo_creation_date).days // 7

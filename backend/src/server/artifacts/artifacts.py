@@ -27,8 +27,6 @@ def get_data_from_api(query):
 def get_artifact_page(query, artifact_type):
     """Gets a page of artifacts and returns them with the hasNextPage and endCursor values."""
     data = get_data_from_api(query)
-    if Config().repo_created_at is None:
-        Config().repo_created_at = data["data"]["repository"]["createdAt"]
     artifact_data = data["data"]["repository"][artifact_type]["nodes"]
     has_next_page = data["data"]["repository"][artifact_type]["pageInfo"]["hasNextPage"]
     end_cursor = data["data"]["repository"][artifact_type]["pageInfo"]["endCursor"]
@@ -97,3 +95,17 @@ def get_requirements(req_file_data):
         # 'parent': '.'.join(req_number.split('.')[:-1])
         requirements.append(req_dict)
     return {"data": requirements}
+
+def get_repo_created_at(repo_owner, repo_name):
+    """Gets the creation date of the repository."""
+    query = """
+    {
+        repository(owner:"$owner", name:"$name") {
+            createdAt
+        }
+    }
+    """
+    query = query.replace("$owner", repo_owner)
+    query = query.replace("$name", repo_name)
+    data = get_data_from_api(query)
+    return data["data"]["repository"]["createdAt"]

@@ -16,7 +16,7 @@ class Config:
     github_token = os.environ.get("GITHUB_TOKEN")
 
     # Tracing parameters
-    # possible_search_methods = ['keyword', 'tf-idf', 'word-vector', 'llm-vector']
+    available_search_methods = ['tf-idf', 'word_embeddings', 'llm']
     # search_method = 'keyword'
     # parent_mode = False
     # reset_graph = False
@@ -26,7 +26,6 @@ class Config:
     # pretrained_model_path = os.environ.get('PRETRAINED_MODEL_PATH')
 
     filter_date = "2023-08-01"
-    repo_created_at = None
 
     def __new__(cls):
         if not hasattr(cls, "instance"):
