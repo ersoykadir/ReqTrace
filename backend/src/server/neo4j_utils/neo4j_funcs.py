@@ -2,28 +2,18 @@
 from neo4j.time import Date
 from server.artifacts import artifacts
 from server.neo4j_utils.neo4j_connector import neo4jConnector
-
-# def populate_db_SDA(user_id, repo_owner, repo_name):
-#     """ Populate the database with SDAs(issue-pr for now) from the repository. """
-#     # Acquire repo data from github
-#     issues = artifacts.get_all_pages('issues', repo_owner, repo_name)
-#     prs = artifacts.get_all_pages('pullRequests', repo_owner, repo_name)
-
-#     # Fetch requirements from given requirements file
-#     # populate_db
-#     return {"message": "Repo created successfully"}
+from server.config import Config
 
 
-def populate_db_requirements(repo_owner, repo_name, database_name, requirements_file):
+def populate_db_requirements(database_name, requirements_file):
     """ Populate the database with requirements from given requirements file. """
     # Acquire repo data from github
     # Fetch requirements from given requirements file
     data = artifacts.get_requirements(requirements_file)
-    for requirement in data['requirements']:
+    for requirement in data['data']:
         requirement['text'] = requirement['description']
     # Create neo4j nodes
-    # neo4jConnector().create_artifact_nodes(data['data'], 'Requirement')
-    neo4jConnector().create_artifact_nodes(data['requirements'], 'Requirement', database_name)
+    neo4jConnector().create_artifact_nodes(data['data'], 'Requirement', database_name)
     neo4jConnector().create_indexes('Requirement', 'number', database_name)
 
 def comment_parser(comments):
@@ -60,9 +50,9 @@ def populate_db_issues(repo_owner, repo_name, database_name):
         ]
         related_prs = []
         for item in issue['timelineItems']['nodes']:
-            if 'CrossReferencedEvent' in item and item['CrossReferencedEvent'] is not None:
+            if 'CrossReferencedEvent' in item and item['CrossReferencedEvent']:
                 related_prs.append(item['CrossReferencedEvent']['number'])
-            elif 'ConnectedEvent' in item and item['ConnectedEvent'] is not None:
+            elif 'ConnectedEvent' in item and item['ConnectedEvent']:
                 related_prs.append(item['ConnectedEvent']['number'])
         issue['related_prs'] = related_prs
         del issue['timelineItems']
@@ -71,13 +61,13 @@ def populate_db_issues(repo_owner, repo_name, database_name):
         issue['createdAt'] = Date.from_iso_format(issue['createdAt'][:10])
         if issue['closedAt'] is not None:
             issue['closedAt'] = Date.from_iso_format(issue['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(data['createdAt'][:10])
+        repo_creation_date = Date.from_iso_format(Config().REPO_CREATED_AT[:10])
 
         # Calculate the weeks passed since the repo was created (Date.from_iso_format(date[:10]))
-        issue['created_week'] = (issue['createdAt'] - repo_creation_date).weeks
+        issue['created_week'] = (issue['createdAt'] - repo_creation_date).days // 7
         issue['closed_week'] = None
         if issue['closedAt'] is not None:
-            issue['closed_week'] = (issue['closedAt'] - repo_creation_date).weeks
+            issue['closed_week'] = (issue['closedAt'] - repo_creation_date).days // 7
 
     # Create neo4j nodes
     # TODO: There must be a way to switch between databases.
@@ -123,13 +113,13 @@ def populate_db_prs(repo_owner, repo_name, database_name):
         pr['createdAt'] = Date.from_iso_format(pr['createdAt'][:10])
         if pr['closedAt'] is not None:
             pr['closedAt'] = Date.from_iso_format(pr['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(data['createdAt'][:10])
+        repo_creation_date = Date.from_iso_format(Config().REPO_CREATED_AT[:10])
 
         # Calculate the weeks passed since the repo was created
-        pr['created_week'] = (pr['createdAt'] - repo_creation_date).weeks
+        pr['created_week'] = (pr['createdAt'] - repo_creation_date).days // 7
         pr['closed_week'] = None
         if pr['closedAt'] is not None:
-            pr['closed_week'] = (pr['closedAt'] - repo_creation_date).weeks
+            pr['closed_week'] = (pr['closedAt'] - repo_creation_date).days // 7
 
     # Create neo4j nodes
     # neo4jConnector().create_artifact_nodes(data['pullRequests'], 'PullRequest')
