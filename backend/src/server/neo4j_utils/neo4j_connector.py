@@ -1,7 +1,5 @@
-import os
-import datetime
+""" Neo4j connector class. """
 from neo4j import GraphDatabase
-
 from server.config import Config
 
 # TODO: Create database function
@@ -13,7 +11,8 @@ from server.config import Config
 # TODO: Create artifacts function, from json data (populate db with SDAs)
 # TODO: Create requirements function, from json data (populate db with requirements)
 
-class neo4jConnector:
+class Neo4jConnector:
+    """ Neo4j connector class. """
     # Having single neo4j connection might be worse, must test!!!
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -32,6 +31,7 @@ class neo4jConnector:
         )
 
     def close(self):
+        """ Close neo4j connection."""
         self.driver.close()
 
     @staticmethod
@@ -100,6 +100,7 @@ class neo4jConnector:
         self.execute_query(query, database, params)
 
     def link_commits_prs(self, database):
+        """ Link commits and pull requests."""
         query = '''
             MATCH (n:Commit), (p:PullRequest)
             where n.associatedPullRequests = p.number
@@ -109,16 +110,17 @@ class neo4jConnector:
         self.execute_query(query, database)
 
     def create_indexes(self, label, field, database):
+        """ Create indexes for given label and field."""
         index_name = f'{label}_{field}'
         field = f'n.{field}'
         query = (f'''
             CREATE INDEX {index_name} IF NOT EXISTS FOR (n:{label}) ON ({field})
         ''').format(index_name=index_name, label=label, field=field)
         params = { "label": label, "field": field }
-
         self.execute_query(query, database, params)
 
     def clean_all_data(self, database):
+        """ Delete all data from database."""
         query = '''
             MATCH (n)
             detach delete n
@@ -126,6 +128,7 @@ class neo4jConnector:
         self.execute_query(query, database)
 
     def filter_artifacts(self, date, database):
+        """ Delete all artifacts created before given date."""
         query_issue = (f'''
             Match(n:Issue) 
             where date(n.createdAt) <= date("{date}")
@@ -146,6 +149,7 @@ class neo4jConnector:
         self.execute_query(query_commit, database)
 
     def create_traces_v3(self, traces, label, database):
+        """ Create traces between artifacts."""
         query = (f'''
             UNWIND $traces AS trace
             MATCH (r:Requirement)

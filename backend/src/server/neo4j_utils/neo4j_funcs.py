@@ -1,7 +1,7 @@
 """ This file contains the functions that interact with the neo4j database. """
 from neo4j.time import Date
 from server.artifacts import artifacts
-from server.neo4j_utils.neo4j_connector import neo4jConnector
+from server.neo4j_utils.neo4j_connector import Neo4jConnector
 from server.config import Config
 
 
@@ -13,8 +13,8 @@ def populate_db_requirements(database_name, requirements_file):
     for requirement in data['data']:
         requirement['text'] = requirement['description']
     # Create neo4j nodes
-    neo4jConnector().create_artifact_nodes(data['data'], 'Requirement', database_name)
-    neo4jConnector().create_indexes('Requirement', 'number', database_name)
+    Neo4jConnector().create_artifact_nodes(data['data'], 'Requirement', database_name)
+    Neo4jConnector().create_indexes('Requirement', 'number', database_name)
 
 def comment_parser(comments):
     """ Parses the comments of an issue or pull request. """
@@ -61,7 +61,7 @@ def populate_db_issues(repo_owner, repo_name, database_name):
         issue['createdAt'] = Date.from_iso_format(issue['createdAt'][:10])
         if issue['closedAt'] is not None:
             issue['closedAt'] = Date.from_iso_format(issue['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(Config().REPO_CREATED_AT[:10])
+        repo_creation_date = Date.from_iso_format(Config().repo_created_at[:10])
 
         # Calculate the weeks passed since the repo was created (Date.from_iso_format(date[:10]))
         issue['created_week'] = (issue['createdAt'] - repo_creation_date).days // 7
@@ -70,17 +70,14 @@ def populate_db_issues(repo_owner, repo_name, database_name):
             issue['closed_week'] = (issue['closedAt'] - repo_creation_date).days // 7
 
     # Create neo4j nodes
-    # TODO: There must be a way to switch between databases.
-    # If different dockers are used, then neo4jConnector must be initialized with the docker port
-    # (a mapping between user.id and docker port needed). (Singleton will not work)
-    # Or just clear the database and populate it with new data. each time. (docker for each user)
-    # If same docker is used, then neo4j config must be changed to use different databases.
-    # neo4jConnector().create_artifact_nodes(data['data'], 'Issue')
-    neo4jConnector().create_artifact_nodes(data['data'], 'Issue', database_name)
-    neo4jConnector().create_indexes('Issue', 'number', database_name)
+    # There must be a way to switch between databases.
+    #   -> With dozerdb plugin, we can create databases and switch between them.
+    # TODO1: Still we need to find a way to set each user to access only their own database.
+    Neo4jConnector().create_artifact_nodes(data['data'], 'Issue', database_name)
+    Neo4jConnector().create_indexes('Issue', 'number', database_name)
 
 
-# TODO: Get commit data from pr['commits'] and create commit nodes.
+# TODO2: Get commit data from pr['commits'] and create commit nodes.
 
 def populate_db_prs(repo_owner, repo_name, database_name):
     """ Populate the database with pull requests from given repository."""
@@ -113,7 +110,7 @@ def populate_db_prs(repo_owner, repo_name, database_name):
         pr['createdAt'] = Date.from_iso_format(pr['createdAt'][:10])
         if pr['closedAt'] is not None:
             pr['closedAt'] = Date.from_iso_format(pr['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(Config().REPO_CREATED_AT[:10])
+        repo_creation_date = Date.from_iso_format(Config().repo_created_at[:10])
 
         # Calculate the weeks passed since the repo was created
         pr['created_week'] = (pr['createdAt'] - repo_creation_date).days // 7
@@ -123,5 +120,5 @@ def populate_db_prs(repo_owner, repo_name, database_name):
 
     # Create neo4j nodes
     # neo4jConnector().create_artifact_nodes(data['pullRequests'], 'PullRequest')
-    neo4jConnector().create_artifact_nodes(data['data'], 'PullRequest', database_name)
-    neo4jConnector().create_indexes('PullRequest', 'number', database_name)
+    Neo4jConnector().create_artifact_nodes(data['data'], 'PullRequest', database_name)
+    Neo4jConnector().create_indexes('PullRequest', 'number', database_name)

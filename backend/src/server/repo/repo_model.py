@@ -3,7 +3,7 @@ Kadir Ersoy
 Internship Project
 User Model
 """
-from sqlalchemy import Column, Integer, String, UniqueConstraint, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 from server.database.database import Base

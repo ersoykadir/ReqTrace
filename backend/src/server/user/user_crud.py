@@ -1,8 +1,4 @@
-"""
-Kadir Ersoy
-Internship Project
-User CRUD
-"""
+"""User CRUD operations"""
 from sqlalchemy.orm import Session
 
 from server.user import user_model

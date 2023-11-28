@@ -1,8 +1,4 @@
-"""
-Kadir Ersoy
-Internship Project
-User Model
-"""
+"""User Model"""
 from sqlalchemy import Column, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 

@@ -1,11 +1,7 @@
-"""
-Kadir Ersoy
-Internship Project
-User Schema
-"""
+"""User schema"""
 from typing import List
 from pydantic import BaseModel
-from repo.repo_schema import Repo
+from server.repo.repo_schema import Repo
 
 
 class UserBase(BaseModel):
