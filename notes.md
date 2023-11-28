@@ -29,3 +29,11 @@ Repo Creation
 - new plugin!! Dozerdb allows neo4j community to have multiple databases
   - Check if neo4j has user system, to avoid each user reaching every database
 - UploadFile of fastapi has python-file like interface, better
+
+
+Repo controller
+- neo4j database naming allows only ascii, number and dots
+- python empty dict gives false in bool check(nice info)
+
+Don't forget to setup server as package
+- pip install -e .
