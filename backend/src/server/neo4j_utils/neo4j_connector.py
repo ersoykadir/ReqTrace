@@ -53,16 +53,28 @@ class neo4jConnector:
         try:
             with self.driver.session(database=database) as session:
                 result = session.execute_write(self.tx, query, params)
+                return result
         except Exception as e:
             # print(query, params)
             raise e
+
+    def check_database_exists(self, database_name):
+        """ Check if database exists."""
+        query = 'SHOW DATABASES YIELD name'
+        database_names = self.execute_query(query, 'system')
+        print(database_names)
+        for name in database_names:
+            if name['name'] == database_name:
+                print(f'Database {database_name} already exists.')
+                return True
+        print(f'Database {database_name} does not exist.')
+        return False
 
     def create_database(self, database_name):
         """ Create a new database."""
         query = (f'''
             CREATE DATABASE {database_name}
         ''').format(database_name=database_name)
-
         self.execute_query(query, 'system')
 
     def create_issue_from_json(self, json_file, database):
