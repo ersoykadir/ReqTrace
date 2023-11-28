@@ -24,6 +24,7 @@ class Config:
     # pretrained_model_path = os.environ.get('PRETRAINED_MODEL_PATH')
 
     filter_date = '2023-08-01'
+    REPO_CREATED_AT = None
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):

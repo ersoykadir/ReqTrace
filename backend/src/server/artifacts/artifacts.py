@@ -11,7 +11,6 @@ from bs4 import BeautifulSoup
 from server.artifacts.graphql_templates import ISSUE_queryTemplate, PR_queryTemplate
 from server.config import Config
 
-REPO_CREATED_AT = None
 
 def get_data_from_api(query):
     """ Acquires data from the github graphql api, given a graphql query."""
@@ -30,8 +29,8 @@ def get_data_from_api(query):
 def get_artifact_page(query, artifact_type):
     """ Gets a page of artifacts and returns them with the hasNextPage and endCursor values."""
     data = get_data_from_api(query)
-    if REPO_CREATED_AT is None:
-        REPO_CREATED_AT = data['data']['repository']['createdAt']
+    if Config().REPO_CREATED_AT is None:
+        Config().REPO_CREATED_AT = data['data']['repository']['createdAt']
     artifact_data = data['data']['repository'][artifact_type]['nodes']
     has_next_page = data['data']['repository'][artifact_type]['pageInfo']['hasNextPage']
     end_cursor = data['data']['repository'][artifact_type]['pageInfo']['endCursor']
@@ -66,7 +65,7 @@ def get_all_pages(artifact_type, repo_owner, repo_name):
         pages = pages + page_data
 
     pages = filter_before(pages, Config().filter_date)
-    return {"data": pages, "created_at": REPO_CREATED_AT}
+    return {"data": pages}
 
 
 def filter_before(pages, filter_date):
