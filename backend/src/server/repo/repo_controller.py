@@ -51,7 +51,8 @@ async def create_repo(
     """
     # neo4j.create_db(user.id, repo_owner, repo_name)
     database_name = f"{repo_owner}.{repo_name}.id{user.id}"
-    neo4jConnector().create_database(database_name) # TODO: What if database already exists? cypher gives error, detect it and handle it
+    if not neo4jConnector().check_database_exists(database_name):
+        neo4jConnector().create_database(database_name)
     # Acquire repo data from github
     # populate_db_SDA(user.id, repo_owner, repo_name)
     populate_db_issues(repo_owner, repo_name, database_name)
