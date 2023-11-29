@@ -24,7 +24,7 @@ class Neo4jConnector:
         self.__initialized = True
 
         self.driver = GraphDatabase.driver(
-            f'{Config().neo4j_host}:7687',
+            f'bolt://{Config().neo4j_host}:7687',
             auth=(Config().neo4j_username, Config().neo4j_password)
         )
 
@@ -43,7 +43,6 @@ class Neo4jConnector:
             record = result.data()
             return record
         except Exception as e:
-            print(Config().neo4j_uri)
             raise e
 
     def execute_query(self, query, database, params=None):
@@ -55,6 +54,14 @@ class Neo4jConnector:
         except Exception as e:
             # print(query, params)
             raise e
+
+    def get_node_labels(self, database):
+        """ Get all node labels."""
+        query = '''
+            MATCH (n) RETURN distinct labels(n) as label
+        '''
+        result = self.execute_query(query, database)
+        return result
 
     def check_database_exists(self, database_name):
         """ Check if database exists."""
@@ -102,6 +109,15 @@ class Neo4jConnector:
         query = (f'''
             MATCH (n:{label})
             RETURN n
+        ''').format(label=label)
+        result = self.execute_query(query, database)
+        return result
+
+    def get_artifact_nodes_filtered(self, label, database):
+        """ Get artifact nodes from given label."""
+        query = (f'''
+            MATCH (n:{label})
+            RETURN n.number as number, n.text as text
         ''').format(label=label)
         result = self.execute_query(query, database)
         return result
@@ -157,16 +173,16 @@ class Neo4jConnector:
 
     def create_trace_links(self, source_artifact, target_artifact, traces, database):
         """ Create traces between artifacts."""
+        print(traces)
         query = (f'''
             UNWIND $traces AS trace
             MATCH (r:{source_artifact})
             WHERE r.number = trace[0]
-            WITH r, trace[1] as trace_list
-            unwind trace_list AS art_key_pair
+            WITH r, trace[1] as target, trace[2] as weight
             MATCH (i:{target_artifact})
-            WHERE i.number = art_key_pair[0]
+            WHERE i.number = target
             CREATE (i)<-[t:tracesTo]-(r)
-            SET t.weight = art_key_pair[1]
+            SET t.weight = weight
             RETURN *
         ''').format(source_artifact=source_artifact, target_artifact=target_artifact)
 

@@ -113,7 +113,7 @@ tracers = {
 
 # Build trace links
 # Expect user to give (source artifact, target artifact) and trace method
-@router.post("/repos/{repo_id}/tracelinks")
+@router.post("/{repo_id}/")
 async def create_trace_links(
     repo_id: str,
     trace_link: TraceLink,
@@ -127,33 +127,36 @@ async def create_trace_links(
     # If repo does not exist, return error
     if not Neo4jConnector().check_database_exists(repo_id):
         return {"message": "Repo does not exist"}
+
+    node_labels = Neo4jConnector().get_node_labels(repo_id)
+    node_labels = [label["label"][0] for label in node_labels]
     # If one of the source or target artifact types does not exist in the database, return error
-    if trace_link.source_artifact_type not in ["issue", "pull_request", "requirement"]:
-        return {"message": "Source artifact type does not exist"}
-    if trace_link.target_artifact_type not in ["issue", "pull_request", "requirement"]:
-        return {"message": "Target artifact type does not exist"}
+    if trace_link.source_artifact_type not in node_labels:
+        return {"message": f"Source artifact type does not exist, available types: {node_labels}"}
+    if trace_link.target_artifact_type not in node_labels:
+        return {"message": f"Target artifact type does not exist, available types: {node_labels}"}
     if trace_link.source_artifact_type == trace_link.target_artifact_type:
         # This is not implemented yet, we will decide what to do here later
         return {"message": "Source and target artifact types are the same"}
     # If trace method is not available, return error, inform about available trace methods
     if trace_link.trace_method not in Config().available_search_methods:
-        return {"message": "Trace method is not available"}
+        return {"message": f"Trace method is not available, available methods: {Config().available_search_methods}"}
 
     # Get all source artifacts of given type from the database
-    source_artifacts = Neo4jConnector().get_artifact_nodes(trace_link.source_artifact_type, repo_id)
+    source_artifacts = Neo4jConnector().get_artifact_nodes_filtered(trace_link.source_artifact_type, repo_id)
     # Get all target artifacts of given type from the database
-    target_artifacts = Neo4jConnector().get_artifact_nodes(trace_link.target_artifact_type, repo_id)
+    target_artifacts = Neo4jConnector().get_artifact_nodes_filtered(trace_link.target_artifact_type, repo_id)
 
     # For each source artifact, find the related target artifacts and create trace links
     # Create tracer object with given trace method
     # Call trace method with source and target artifacts
     # Trace method will return trace links
     tracer = tracers[trace_link.trace_method]
-    tracer.find_natural_links(source_artifacts, target_artifacts)
+    # tracer.find_natural_links(source_artifacts, target_artifacts)
     tracer.find_links(source_artifacts, target_artifacts)
     trace_links = tracer.get_trace_links()
 
-    Neo4jConnector().create_trace_links(source_artifacts, target_artifacts, trace_links, repo_id)
+    Neo4jConnector().create_trace_links(trace_link.source_artifact_type, trace_link.target_artifact_type, trace_links, repo_id)
     # Save trace links to the database
         # Apart from trace_method, there are natural trace links.
         # for issue-pr, there is a natural trace link between issue and pr(linked prs for issue)

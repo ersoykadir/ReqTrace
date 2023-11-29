@@ -16,7 +16,7 @@ class Config:
     github_token = os.environ.get("GITHUB_TOKEN")
 
     # Tracing parameters
-    available_search_methods = ['tf-idf', 'word_embeddings', 'llm']
+    available_search_methods = ['tfidf', 'word_embeddings', 'llm']
     # search_method = 'keyword'
     # parent_mode = False
     # reset_graph = False
