@@ -18,7 +18,7 @@ class Tracer:
         # Add found trace links to self.trace_links, do not overwrite existing trace links
         print(f"Finding natural trace links from {source_artifacts} to {target_artifacts}...")
         raise NotImplementedError
-    
+
     def get_trace_links(self):
         """Return trace links."""
         return self.trace_links
