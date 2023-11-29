@@ -87,7 +87,7 @@ class Neo4jConnector:
         self.execute_query(query, database)
 
     def create_artifact_nodes(self, artifacts, label, database):
-        """ Create artifact nodes from given json file."""
+        """ Create artifact nodes from given data."""
         query = (f'''
             UNWIND $artifacts AS properties
             create (n: {label} )
@@ -96,6 +96,15 @@ class Neo4jConnector:
         ''').format(label=label)
         params = {"artifacts": artifacts}
         self.execute_query(query, database, params)
+
+    def get_artifact_nodes(self, label, database):
+        """ Get artifact nodes from given label."""
+        query = (f'''
+            MATCH (n:{label})
+            RETURN n
+        ''').format(label=label)
+        result = self.execute_query(query, database)
+        return result
 
     def link_commits_prs(self, database):
         """ Link commits and pull requests."""
@@ -146,21 +155,39 @@ class Neo4jConnector:
         self.execute_query(query_pr, database)
         self.execute_query(query_commit, database)
 
-    def create_traces_v3(self, traces, label, database):
+    def create_trace_links(self, source_artifact, target_artifact, traces, database):
         """ Create traces between artifacts."""
         query = (f'''
             UNWIND $traces AS trace
-            MATCH (r:Requirement)
+            MATCH (r:{source_artifact})
             WHERE r.number = trace[0]
             WITH r, trace[1] as trace_list
             unwind trace_list AS art_key_pair
-            MATCH (i:{label})
+            MATCH (i:{target_artifact})
             WHERE i.number = art_key_pair[0]
             CREATE (i)<-[t:tracesTo]-(r)
-            SET t.weight = art_key_pair[1][0]
-            SET t.keywords = art_key_pair[1][1]
+            SET t.weight = art_key_pair[1]
             RETURN *
-        ''').format(label=label)
+        ''').format(source_artifact=source_artifact, target_artifact=target_artifact)
 
         params = {'traces': traces}
         self.execute_query(query, database, params)
+
+    # def create_trace_links(self, traces, label, database):
+    #     """ Create traces between artifacts."""
+    #     query = (f'''
+    #         UNWIND $traces AS trace
+    #         MATCH (r:Requirement)
+    #         WHERE r.number = trace[0]
+    #         WITH r, trace[1] as trace_list
+    #         unwind trace_list AS art_key_pair
+    #         MATCH (i:{label})
+    #         WHERE i.number = art_key_pair[0]
+    #         CREATE (i)<-[t:tracesTo]-(r)
+    #         SET t.weight = art_key_pair[1][0]
+    #         SET t.keywords = art_key_pair[1][1]
+    #         RETURN *
+    #     ''').format(label=label)
+
+    #     params = {'traces': traces}
+    #     self.execute_query(query, database, params)
