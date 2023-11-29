@@ -54,13 +54,13 @@ def populate_db_issues(data, repo_creation_date, database_name):
         issue['createdAt'] = Date.from_iso_format(issue['createdAt'][:10])
         if issue['closedAt'] is not None:
             issue['closedAt'] = Date.from_iso_format(issue['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(repo_creation_date[:10])
+        repo_created_at = Date.from_iso_format(repo_creation_date[:10])
 
         # Calculate the weeks passed since the repo was created (Date.from_iso_format(date[:10]))
-        issue['created_week'] = (issue['createdAt'] - repo_creation_date).days // 7
+        issue['created_week'] = (issue['createdAt'] - repo_created_at).days // 7
         issue['closed_week'] = None
         if issue['closedAt'] is not None:
-            issue['closed_week'] = (issue['closedAt'] - repo_creation_date).days // 7
+            issue['closed_week'] = (issue['closedAt'] - repo_created_at).days // 7
 
     # Create neo4j nodes
     # There must be a way to switch between databases.
@@ -100,13 +100,13 @@ def populate_db_prs(data, repo_creation_date, database_name):
         pr['createdAt'] = Date.from_iso_format(pr['createdAt'][:10])
         if pr['closedAt'] is not None:
             pr['closedAt'] = Date.from_iso_format(pr['closedAt'][:10])
-        repo_creation_date = Date.from_iso_format(repo_creation_date[:10])
+        repo_created_at = Date.from_iso_format(repo_creation_date[:10])
 
         # Calculate the weeks passed since the repo was created
-        pr['created_week'] = (pr['createdAt'] - repo_creation_date).days // 7
+        pr['created_week'] = (pr['createdAt'] - repo_created_at).days // 7
         pr['closed_week'] = None
         if pr['closedAt'] is not None:
-            pr['closed_week'] = (pr['closedAt'] - repo_creation_date).days // 7
+            pr['closed_week'] = (pr['closedAt'] - repo_created_at).days // 7
 
     # Create neo4j nodes
     # neo4jConnector().create_artifact_nodes(data['pullRequests'], 'PullRequest')

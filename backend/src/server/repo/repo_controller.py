@@ -22,6 +22,12 @@ router = APIRouter(
 )
 
 
+class RepoBase(BaseModel):
+    """Repo model."""
+    repo_owner: str
+    repo_name: str
+
+
 class Repo(BaseModel):
     """Repo model."""
     owner_id: int
@@ -49,8 +55,7 @@ class Repo(BaseModel):
 
 @router.post("/")
 async def create_repo(
-    repo_owner: Annotated[str, Form()],
-    repo_name: Annotated[str, Form()],
+    repo: RepoBase,
     user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
 ):
     """
@@ -58,7 +63,7 @@ async def create_repo(
     Populate it with the SDAs(issue-pr for now) from the repository.
     Populate it with the requirements from given requirements file.
     """
-    database_name = f"{repo_owner}.{repo_name}.id{user.id}"
+    database_name = f"{repo.repo_owner}.{repo.repo_name}.id{user.id}"
     if Neo4jConnector().check_database_exists(database_name):
         return {"message": "Repo already exists"}
     Neo4jConnector().create_database(database_name)
