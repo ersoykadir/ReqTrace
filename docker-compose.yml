@@ -1,0 +1,70 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - 3000:3000
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    env_file:
+      - backend/src/server/.env
+    networks:
+      - container_network
+    depends_on:
+      - mysql
+      - neo4j
+  neo4j:
+    image: neo4j:5.13.0-community
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_dbms_memory_pagecache_size=1G
+      - NEO4J_dbms.memory.heap.initial_size=1G
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_security_procedures_unrestricted=algo.*,apoc.*
+      - CLASSPATH_PREFIX=/var/lib/neo4j/lib/dozerdb-plugin-5.13.0.0-alpha.1.jar
+    cap_add:
+      - SYS_RESOURCE
+    restart: unless-stopped
+    ports:
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - ./backend/neo4j/conf/apoc.conf:/var/lib/neo4j/conf/apoc.conf
+      - ./backend/neo4j/plugins:/var/lib/neo4j/plugins
+      - ./backend/neo4j/dozerdb/dozerdb-plugin-5.13.0.0-alpha.1.jar:/var/lib/neo4j/lib/dozerdb-plugin-5.13.0.0-alpha.1.jar
+    networks:
+      - container_network
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: reqTrace
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    volumes:
+      - reqTrace-mysql-data:/var/lib/mysql
+    networks:
+      - container_network
+volumes:
+  reqTrace-mysql-data:
+networks:
+  container_network:
+
+    # environment:
+    #   HOST: 0.0.0.0
+    #   PORT: 3000
+    #   MYSQL_HOST: mysql
+    #   MYSQL_USER: root
+    #   MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    #   MYSQL_DB: reqTrace
+    #   GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    #   GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    #   SECRET_KEY: ${SECRET_KEY}
+    #   NEO4J_USERNAME: ${NEO4J_USERNAME}
+    #   NEO4J_USERNAME: ${NEO4J_PASSWORD}
+    #   NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+    #   NEO4J_URI: ${NEO4J_URI}
+    #   GITHUB_USERNAME: ${GITHUB_USERNAME}
+    #   GITHUB_TOKEN: ${GITHUB_TOKEN}
+    #   CLASSPATH_PREFIX: ${CLASSPATH_PREFIX}
