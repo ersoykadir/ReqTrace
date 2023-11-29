@@ -11,7 +11,7 @@ class Config:
     # environment variables
     neo4j_username = os.environ.get("NEO4J_USERNAME")
     neo4j_password = os.environ.get("NEO4J_PASSWORD")
-    neo4j_uri = os.environ.get("NEO4J_URI")
+    neo4j_host = os.environ.get("NEO4J_HOST")
     github_username = os.environ.get("GITHUB_USERNAME")
     github_token = os.environ.get("GITHUB_TOKEN")
 
