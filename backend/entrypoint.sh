@@ -8,7 +8,7 @@ if [ -n "$MYSQL_HOST" ]; then
   ./wait-for-it.sh $MYSQL_HOST:3306
 fi
 if [ -n "$NEO4J_HOST" ]; then
-  ./wait-for-it.sh $NEO4J_HOST:7687
+  ./wait-for-it.sh $NEO4J_HOST:7687 -t 60
 fi
 
 # Run the main container command.
