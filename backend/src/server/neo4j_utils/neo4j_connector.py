@@ -126,7 +126,7 @@ class Neo4jConnector:
         params = { "label": label, "field": field }
         self.execute_query(query, database, params)
 
-    def clean_all_data(self, database):
+    def clear_database(self, database):
         """ Delete all data from database."""
         query = '''
             MATCH (n)

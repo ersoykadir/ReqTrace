@@ -51,7 +51,6 @@ class Repo(BaseModel):
 async def create_repo(
     repo_owner: Annotated[str, Form()],
     repo_name: Annotated[str, Form()],
-    requirements_file: UploadFile,
     user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
 ):
     """
@@ -60,9 +59,29 @@ async def create_repo(
     Populate it with the requirements from given requirements file.
     """
     database_name = f"{repo_owner}.{repo_name}.id{user.id}"
+    if Neo4jConnector().check_database_exists(database_name):
+        return {"message": "Repo already exists"}
+    Neo4jConnector().create_database(database_name)
+    return {"message": "Repo created successfully"}
+
+@router.post("/populate")
+def populate_database(
+    repo_owner: Annotated[str, Form()],
+    repo_name: Annotated[str, Form()],
+    requirements_file: UploadFile,
+    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
+):
+    """
+        Populate the database with the SDAs(issue-pr for now) from the repository.
+        Beware that this will clear the database first!
+    """
     repo_creation_date = artifacts.get_repo_created_at(repo_owner, repo_name)
+    database_name = f"{repo_owner}.{repo_name}.id{user.id}"
     if not Neo4jConnector().check_database_exists(database_name):
-        Neo4jConnector().create_database(database_name)
+        return {"message": "Repo does not exist"}
+
+    # Clear the database
+    Neo4jConnector().clear_database(database_name)
 
     issues = artifacts.get_all_pages('issues', repo_owner, repo_name)
     pull_requests = artifacts.get_all_pages('pullRequests', repo_owner, repo_name)
@@ -72,8 +91,7 @@ async def create_repo(
     requirements = artifacts.get_requirements(requirements_file)
     populate_db_requirements(requirements, database_name)
 
-    return {"message": "Repo created successfully"}
-
+    return {"message": "Database populated successfully"}
 
 
 class TraceLink(BaseModel):
