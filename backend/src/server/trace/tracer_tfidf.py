@@ -4,6 +4,7 @@ import numpy as np
 from scipy.spatial.distance import cosine
 from server.trace.tracer import Tracer
 
+# TODO1: Find a way to automatically find the best threshold for similarity
 
 class TFIDF(Tracer):
     """TF-IDF trace method."""
@@ -17,7 +18,6 @@ class TFIDF(Tracer):
         """Create the vector model for the graph."""
         # Should we create model based on all artifacts or only given types?
         # For now I am only using given types
-        # TODO1: Implement TF-IDF tracing
         source_vectors = {}
         target_vectors = {}
         data = source_artifacts + target_artifacts

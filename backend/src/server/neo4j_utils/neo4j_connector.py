@@ -181,7 +181,7 @@ class Neo4jConnector:
             WITH r, trace[1] as target, trace[2] as weight
             MATCH (i:{target_artifact})
             WHERE i.number = target
-            CREATE (i)<-[t:tracesTo]-(r)
+            MERGE (i)<-[t:tracesTo]-(r)
             SET t.weight = weight
             RETURN *
         ''').format(source_artifact=source_artifact, target_artifact=target_artifact)

@@ -37,3 +37,6 @@ Repo controller
 
 Don't forget to setup server as package
 - pip install -e .
+
+Somehow postman forgets the file uploaded after a restart. Dont panic when file field missing error occurs. Reupload file to postman.
+Use MERGE instead of CREATE for putting links, avoids duplicates!
