@@ -24,7 +24,7 @@ class Neo4jConnector:
         self.__initialized = True
 
         self.driver = GraphDatabase.driver(
-            Config().neo4j_uri,
+            f'{Config().neo4j_host}:7687',
             auth=(Config().neo4j_username, Config().neo4j_password)
         )
 
