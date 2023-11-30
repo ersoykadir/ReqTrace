@@ -49,4 +49,8 @@ def oauth2callback(state, code, database: Session = Depends(get_db)):
     # Create token
     token = auth_utils.create_access_token(data={"sub": user.email}, expire=exp)
     access_token = {"access_token": token, "token_type": "bearer"}
-    return access_token
+    
+    # Redirect user to frontend with token
+    response = RedirectResponse(url=f"http://localhost:1234?access_token={access_token['access_token']}")
+    # print(response)
+    return response

@@ -45,7 +45,7 @@ def get_google_auth_url():
     """Acquire google auth url for redirecting user to google login page"""
 
     # Indicate where the API server will redirect the user after the user completes
-    flow.redirect_uri = "http://localhost:3000/auth/google/callback"
+    flow.redirect_uri = "http://localhost:3000/api/auth/google/callback"
 
     # Generate URL for request to Google's OAuth 2.0 server.
     # Use kwargs to set optional request parameters.
