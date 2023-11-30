@@ -61,7 +61,15 @@ class Neo4jConnector:
             MATCH (n) RETURN distinct labels(n) as label
         '''
         result = self.execute_query(query, database)
-        return result
+        node_labels = [label["label"][0] for label in result]
+        return node_labels
+
+    def get_database_names(self):
+        """ Get all database names."""
+        query = 'SHOW DATABASES YIELD name'
+        database_names = self.execute_query(query, 'system')
+        database_names = [name['name'] for name in database_names]
+        return database_names
 
     def check_database_exists(self, database_name):
         """ Check if database exists."""

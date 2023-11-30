@@ -1,6 +1,6 @@
 """ Repo controller"""
 from typing import Annotated
-from fastapi import APIRouter, Depends, Form, UploadFile
+from fastapi import APIRouter, Depends, Form, UploadFile, HTTPException
 from pydantic import BaseModel
 from server.authentication.auth_utils import get_current_user
 from server.user import user_schema
@@ -21,6 +21,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+# TODO1: Check if user is authorized to access the repo at each endpoint!!!
 
 class RepoBase(BaseModel):
     """Repo model."""
@@ -63,16 +64,58 @@ async def create_repo(
     Populate it with the SDAs(issue-pr for now) from the repository.
     Populate it with the requirements from given requirements file.
     """
+    # Check if repo exists
+    if not artifacts.check_repo_exists(repo.repo_owner, repo.repo_name):
+        raise HTTPException(status_code=404, detail="Github Repo doesn't exist!")
     database_name = f"{repo.repo_owner}.{repo.repo_name}.id{user.id}"
     if Neo4jConnector().check_database_exists(database_name):
-        return {"message": "Repo already exists"}
+        raise HTTPException(status_code=400, detail="Repo already exists!")
     Neo4jConnector().create_database(database_name)
     return {"message": "Repo created successfully"}
 
-@router.post("/populate")
-def populate_database(
-    repo_owner: Annotated[str, Form()],
-    repo_name: Annotated[str, Form()],
+@router.get("/")
+async def get_repos(
+    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
+):
+    """
+    Get all repositories of given user.
+    """
+    database_names = Neo4jConnector().get_database_names()
+    repo_names = []
+    for name in database_names:
+        if f"id{user.id}" in name:
+            repo_names.append(name)
+    print(repo_names)
+    return {"repos": repo_names}
+
+@router.get("/{repo_id}/artifacts")
+async def get_artifact_types(
+    repo_id: str,
+    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
+):
+    """
+    Get all artifact types of given repository for given user.
+    """
+    if not Neo4jConnector().check_database_exists(repo_id):
+        return {"message": "Repo does not exist"}
+    if f"id{user.id}" not in repo_id:
+        return {"message": "You are not authorized to access this repo"}
+    node_labels = Neo4jConnector().get_node_labels(repo_id)
+    return {"artifact_types": node_labels}
+
+@router.get("/traceMethods")
+async def get_trace_methods(
+    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
+):
+    """
+    Get all trace methods for given repository for given user.
+    """
+    return {"trace_methods": Config().available_search_methods}
+
+
+@router.post("/{repo_id}/populate")
+def populate_repo(
+    repo_id: str,
     requirements_file: UploadFile,
     user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
 ):
@@ -80,21 +123,25 @@ def populate_database(
         Populate the database with the SDAs(issue-pr for now) from the repository.
         Beware that this will clear the database first!
     """
+    print(repo_id)
+    repo_owner, repo_name = repo_id.split(".")[0:2]
     repo_creation_date = artifacts.get_repo_created_at(repo_owner, repo_name)
-    database_name = f"{repo_owner}.{repo_name}.id{user.id}"
-    if not Neo4jConnector().check_database_exists(database_name):
+    # database_name = f"{repo_owner}.{repo_name}.id{user.id}"
+    if not Neo4jConnector().check_database_exists(repo_id):
         return {"message": "Repo does not exist"}
+    if f"id{user.id}" not in repo_id:
+        return {"message": "You are not authorized to access this repo"}
 
     # Clear the database
-    Neo4jConnector().clear_database(database_name)
+    Neo4jConnector().clear_database(repo_id)
 
     issues = artifacts.get_all_pages('issues', repo_owner, repo_name)
     pull_requests = artifacts.get_all_pages('pullRequests', repo_owner, repo_name)
-    populate_db_issues(issues, repo_creation_date, database_name)
-    populate_db_prs(pull_requests, repo_creation_date, database_name)
+    populate_db_issues(issues, repo_creation_date, repo_id)
+    populate_db_prs(pull_requests, repo_creation_date, repo_id)
 
     requirements = artifacts.get_requirements(requirements_file)
-    populate_db_requirements(requirements, database_name)
+    populate_db_requirements(requirements, repo_id)
 
     return {"message": "Database populated successfully"}
 
@@ -113,7 +160,7 @@ tracers = {
 
 # Build trace links
 # Expect user to give (source artifact, target artifact) and trace method
-@router.post("/{repo_id}/")
+@router.post("/{repo_id}/trace")
 async def create_trace_links(
     repo_id: str,
     trace_link: TraceLink,
@@ -129,7 +176,6 @@ async def create_trace_links(
         return {"message": "Repo does not exist"}
 
     node_labels = Neo4jConnector().get_node_labels(repo_id)
-    node_labels = [label["label"][0] for label in node_labels]
     # If one of the source or target artifact types does not exist in the database, return error
     if trace_link.source_artifact_type not in node_labels:
         return {"message": f"Source artifact type does not exist, available types: {node_labels}"}
