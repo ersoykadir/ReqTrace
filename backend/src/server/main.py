@@ -3,6 +3,7 @@ import os
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 from server.authentication import auth_controller
 from server.repo import repo_controller
 
@@ -14,9 +15,18 @@ if HOST is None or PORT is None:
     raise ValueError("HOST and PORT environment variables must be set.")
 
 app = FastAPI()
+origins = ["*"]
 
-app.include_router(auth_controller.router)
-app.include_router(repo_controller.router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_controller.router, prefix="/api", tags=["auth"])
+app.include_router(repo_controller.router, prefix="/api", tags=["repo"])
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -36,7 +46,7 @@ if __name__ == "__main__":
 # Be careful to connect to the user's neo4j docker. Be careful to redirect user to its own dashboard
 
 
-@app.get("/")
+@app.get("/api")
 async def healthcheck():
     """Health check endpoint."""
     return {"message": "App is running"}
