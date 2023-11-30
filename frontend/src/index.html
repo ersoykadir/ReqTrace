@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <title>Your Parcel Project</title>
+  <style>
+    body {
+      padding-top: 20px;
+    }
+
+    h2, h3 {
+      margin-bottom: 20px;
+    }
+
+    form {
+      margin-bottom: 30px;
+    }
+
+    .scrollable-options {
+      max-height: 100px; /* Set the maximum height as needed */
+      overflow-y: auto; /* Enable vertical scrollbar if needed */
+    }
+
+    .separator {
+      margin-top: 20px;
+      border-top: 1px solid #ccc;
+      padding-top: 20px;
+    }
+
+    /* Sticky button styles */
+    .sticky-btn {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <h2>Create Repository</h2>
+        <form action="/process-form" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="repo_owner" class="form-label">Repository Owner:</label>
+            <input type="text" class="form-control" id="repo_owner" name="repo_owner" required>
+          </div>
+          <div class="mb-3">
+            <label for="repo_name" class="form-label">Repository Name:</label>
+            <input type="text" class="form-control" id="repo_name" name="repo_name" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+
+      <div class="col-md-6">
+        <h2>Select Repository</h2>
+        <form action="/process-form" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <div class="scrollable-options">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="existing_repos" id="repo1" value="repo1">
+                <label class="form-check-label" for="repo1">
+                  Repository 1
+                </label>
+              </div>
+              <!-- Add more options as needed -->
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+      <div class="separator"></div>
+      <div class="col-md-12">
+        <h3>Populate Repository</h3>
+        <form action="/process-form" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="file" class="form-label">SDAs: Taken from Github</label>
+          </div>
+          <div class="mb-3">
+            <label for="file" class="form-label">Requirements File:</label>
+            <input type="file" class="form-control" id="file" name="file" accept=".txt, .pdf, .docx" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+        <h3>Create Trace Links</h3>
+        <form action="/process-form" method="post" enctype="multipart/form-data">
+          <!-- Your form options for creating trace links -->
+          <div class="mb-3">
+            <label>Source Artifact:</label>
+            <div id="artifactButtons" class="btn-group" role="group" aria-label="Source Artifact">
+              <!-- Options will be dynamically populated here -->
+            </div>
+            <input type="hidden" id="selectedArtifact" name="selectedArtifact" value="">
+          </div>
+          <div class="mb-3">
+            <label>Target Artifact:</label>
+            <div id="artifactButtons" class="btn-group" role="group" aria-label="Target Artifact">
+              <!-- Options will be dynamically populated here -->
+            </div>
+            <input type="hidden" id="selectedArtifact" name="selectedArtifact" value="">
+          </div>
+          <div class="mb-3">
+            <label>Trace Method:</label>
+            <div id="traceMethodButtons" class="btn-group" role="group" aria-label="Trace Method">
+              <!-- Options will be dynamically populated here -->
+            </div>
+            <input type="hidden" id="selectedTraceMethod" name="selectedTraceMethod" value="">
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <br>
+  <button type="button" class="btn btn-secondary sticky-btn" onclick="redirectToDashboard()">Go to Dashboard</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script>
+    // Assume you have a function to fetch the updated repository list from the server
+    function fetchRepositories() {
+      // Replace this URL with your actual API endpoint
+      //return fetch('/api/get-repositories')
+      //  .then(response => response.json());
+      return Promise.resolve(['Option 1', 'Option 2', 'Option 3']);
+    }
+
+    function fetchArtifactOptions() {
+      // Replace this URL with your actual API endpoint
+      //return fetch('/api/get-artifact-options')
+      //  .then(response => response.json());
+      return Promise.resolve(['Option 1', 'Option 2', 'Option 3']);
+    }
+
+    function fetchTraceMethodOptions() {
+      // Replace this URL with your actual API endpoint
+      //return fetch('/api/get-trace-method-options')
+      //  .then(response => response.json());
+      return Promise.resolve(['Option 1', 'Option 2', 'Option 3']);
+    }
+
+    // Function to update the trace method buttons
+    function updateArtifactsOptions() {
+      const artifactButtons = document.getElementById('artifactButtons');
+
+      // Fetch trace method options
+      fetchArtifactOptions()
+        .then(options => {
+          // Clear existing buttons
+          artifactButtons.innerHTML = '';
+
+          // Add buttons based on the fetched data
+          options.forEach(option => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.classList.add('btn', 'btn-outline-primary');
+            button.textContent = option;
+            button.addEventListener('click', function() {
+              // Toggle the active class and update the hidden input
+              const selectedArtifactInput = document.getElementById('selectedArtifact');
+              button.classList.toggle('active');
+              selectedArtifactInput.value = button.classList.contains('active') ? option : '';
+            });
+            artifactButtons.appendChild(button);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching trace method options:', error);
+        });
+    }
+
+    // Function to update the trace method buttons
+    function updateTraceMethodOptions() {
+      const traceMethodButtons = document.getElementById('traceMethodButtons');
+
+      // Fetch trace method options
+      fetchTraceMethodOptions()
+        .then(options => {
+          // Clear existing buttons
+          traceMethodButtons.innerHTML = '';
+
+          // Add buttons based on the fetched data
+          options.forEach(option => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.classList.add('btn', 'btn-outline-primary');
+            button.textContent = option;
+            button.addEventListener('click', function() {
+              // Toggle the active class and update the hidden input
+              const selectedTraceMethodInput = document.getElementById('selectedTraceMethod');
+              button.classList.toggle('active');
+              selectedTraceMethodInput.value = button.classList.contains('active') ? option : '';
+            });
+            traceMethodButtons.appendChild(button);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching trace method options:', error);
+        });
+    }
+
+    // Function to update the options in the Select Repository form
+    function updateRepoOptions() {
+      const selectRepoForm = document.getElementById('selectRepoForm');
+      const repoOptionsContainer = selectRepoForm.querySelector('.scrollable-options');
+
+      // Clear existing options
+      repoOptionsContainer.innerHTML = '';
+
+      // Fetch updated repository list
+      fetchRepositories()
+        .then(repositories => {
+          // Add options based on the fetched data
+          repositories.forEach(repo => {
+            const option = document.createElement('div');
+            option.classList.add('form-check');
+            option.innerHTML = `
+              <input class="form-check-input" type="radio" name="existing_repos" id="${repo.id}" value="${repo.id}">
+              <label class="form-check-label" for="${repo.id}">
+                ${repo.name}
+              </label>
+            `;
+            repoOptionsContainer.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching repositories:', error);
+        });
+    }
+
+    // Add an event listener for the successful submission of the Create Repository form
+    document.getElementById('createRepoForm').addEventListener('submit', function (event) {
+      event.preventDefault(); // Prevent the form from submitting normally
+
+      // Perform form submission via AJAX or fetch if needed
+
+      // Assuming the submission is successful, update the repository options
+      updateRepoOptions();
+    });
+
+    // Initial update of repository options when the page loads
+    updateRepoOptions();
+    updateArtifactsOptions();
+    updateTraceMethodOptions();
+  </script>
+</body>
+</html>
