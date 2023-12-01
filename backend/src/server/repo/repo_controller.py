@@ -1,12 +1,12 @@
 """ Repo controller"""
-from typing import Annotated
-from fastapi import APIRouter, Depends, Form, UploadFile, HTTPException
 from pydantic import BaseModel
-from server.authentication.auth_utils import get_current_user
+from fastapi import APIRouter, Depends, UploadFile, HTTPException
+from server.config import Config
 from server.user import user_schema
 from server.artifacts import artifacts
-from server.config import Config
+from server.authentication.auth_utils import get_current_user
 from server.trace import tracer_llm, tracer_tfidf, tracer_word_embeddings
+
 # from server.database.database import get_db
 from server.neo4j_utils.neo4j_connector import Neo4jConnector
 from server.neo4j_utils.neo4j_funcs import (
@@ -23,14 +23,17 @@ router = APIRouter(
 
 # TODO1: Check if user is authorized to access the repo at each endpoint!!!
 
+
 class RepoBase(BaseModel):
     """Repo model."""
+
     repo_owner: str
     repo_name: str
 
 
 class Repo(BaseModel):
     """Repo model."""
+
     owner_id: int
     repo_owner: str
     repo_name: str
@@ -57,8 +60,8 @@ class Repo(BaseModel):
 @router.post("/")
 async def create_repo(
     repo: RepoBase,
-    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
-):
+    user: user_schema.User = Depends(get_current_user),
+):  # database: Session = Depends(get_db),
     """
     Create a new database for given repository for given user.
     Populate it with the SDAs(issue-pr for now) from the repository.
@@ -73,10 +76,11 @@ async def create_repo(
     Neo4jConnector().create_database(database_name)
     return {"message": "Repo created successfully"}
 
+
 @router.get("/")
 async def get_repos(
-    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
-):
+    user: user_schema.User = Depends(get_current_user),
+):  # database: Session = Depends(get_db),
     """
     Get all repositories of given user.
     """
@@ -88,11 +92,12 @@ async def get_repos(
     print(repo_names)
     return {"repos": repo_names}
 
+
 @router.get("/{repo_id}/artifacts")
 async def get_artifact_types(
     repo_id: str,
-    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
-):
+    user: user_schema.User = Depends(get_current_user),
+):  # database: Session = Depends(get_db),
     """
     Get all artifact types of given repository for given user.
     """
@@ -103,10 +108,9 @@ async def get_artifact_types(
     node_labels = Neo4jConnector().get_node_labels(repo_id)
     return {"artifact_types": node_labels}
 
+
 @router.get("/traceMethods")
-async def get_trace_methods(
-    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
-):
+async def get_trace_methods():
     """
     Get all trace methods for given repository for given user.
     """
@@ -117,11 +121,11 @@ async def get_trace_methods(
 def populate_repo(
     repo_id: str,
     requirements_file: UploadFile,
-    user: user_schema.User = Depends(get_current_user), # database: Session = Depends(get_db),
-):
+    user: user_schema.User = Depends(get_current_user),
+):  # database: Session = Depends(get_db),
     """
-        Populate the database with the SDAs(issue-pr for now) from the repository.
-        Beware that this will clear the database first!
+    Populate the database with the SDAs(issue-pr for now) from the repository.
+    Beware that this will clear the database first!
     """
     print(repo_id)
     repo_owner, repo_name = repo_id.split(".")[0:2]
@@ -135,8 +139,8 @@ def populate_repo(
     # Clear the database
     Neo4jConnector().clear_database(repo_id)
 
-    issues = artifacts.get_all_pages('issues', repo_owner, repo_name)
-    pull_requests = artifacts.get_all_pages('pullRequests', repo_owner, repo_name)
+    issues = artifacts.get_all_pages("issues", repo_owner, repo_name)
+    pull_requests = artifacts.get_all_pages("pullRequests", repo_owner, repo_name)
     populate_db_issues(issues, repo_creation_date, repo_id)
     populate_db_prs(pull_requests, repo_creation_date, repo_id)
 
@@ -148,15 +152,18 @@ def populate_repo(
 
 class TraceLink(BaseModel):
     """Trace link between two artifacts of given types."""
+
     source_artifact_type: str
     target_artifact_type: str
     trace_method: str
+
 
 tracers = {
     "tfidf": tracer_tfidf.TFIDF(),
     "word_embeddings": tracer_word_embeddings.WordEmbeddings(),
     "llm": tracer_llm.LLM(),
 }
+
 
 # Build trace links
 # Expect user to give (source artifact, target artifact) and trace method
@@ -165,9 +172,9 @@ async def create_trace_links(
     repo_id: str,
     trace_link: TraceLink,
 ):
-    """ 
-        Create trace links btw given source and target artifacts for given repo for given user.
-        Trace method is given by the user.
+    """
+    Create trace links btw given source and target artifacts for given repo for given user.
+    Trace method is given by the user.
     """
     print(repo_id, trace_link)
     # repo_id = {repo_owner}.{repo_name}.id{user.id}
@@ -178,20 +185,31 @@ async def create_trace_links(
     node_labels = Neo4jConnector().get_node_labels(repo_id)
     # If one of the source or target artifact types does not exist in the database, return error
     if trace_link.source_artifact_type not in node_labels:
-        return {"message": f"Source artifact type does not exist, available types: {node_labels}"}
+        return {
+            "message": f"Source artifact type does not exist, available types: {node_labels}"
+        }
     if trace_link.target_artifact_type not in node_labels:
-        return {"message": f"Target artifact type does not exist, available types: {node_labels}"}
+        return {
+            "message": f"Target artifact type does not exist, available types: {node_labels}"
+        }
     if trace_link.source_artifact_type == trace_link.target_artifact_type:
         # This is not implemented yet, we will decide what to do here later
         return {"message": "Source and target artifact types are the same"}
     # If trace method is not available, return error, inform about available trace methods
     if trace_link.trace_method not in Config().available_search_methods:
-        return {"message": f"Trace method is not available, available methods: {Config().available_search_methods}"}
+        methods = Config().available_search_methods
+        return {
+            "message": f"Trace method is not available, available methods: {methods}"
+        }
 
     # Get all source artifacts of given type from the database
-    source_artifacts = Neo4jConnector().get_artifact_nodes_filtered(trace_link.source_artifact_type, repo_id)
+    source_artifacts = Neo4jConnector().get_artifact_nodes_filtered(
+        trace_link.source_artifact_type, repo_id
+    )
     # Get all target artifacts of given type from the database
-    target_artifacts = Neo4jConnector().get_artifact_nodes_filtered(trace_link.target_artifact_type, repo_id)
+    target_artifacts = Neo4jConnector().get_artifact_nodes_filtered(
+        trace_link.target_artifact_type, repo_id
+    )
 
     # For each source artifact, find the related target artifacts and create trace links
     # Create tracer object with given trace method
@@ -202,12 +220,17 @@ async def create_trace_links(
     tracer.find_links(source_artifacts, target_artifacts)
     trace_links = tracer.get_trace_links()
 
-    Neo4jConnector().create_trace_links(trace_link.source_artifact_type, trace_link.target_artifact_type, trace_links, repo_id)
+    Neo4jConnector().create_trace_links(
+        trace_link.source_artifact_type,
+        trace_link.target_artifact_type,
+        trace_links,
+        repo_id,
+    )
     # Save trace links to the database
-        # Apart from trace_method, there are natural trace links.
-        # for issue-pr, there is a natural trace link between issue and pr(linked prs for issue)
-        # for req-issue/pr, there is a natural link btw req-issue/pr(req number in issue/pr body)
-        # for issue-issue, there is a natural trace link between issues(traces issues for issue)
+    # Apart from trace_method, there are natural trace links.
+    # for issue-pr, there is a natural trace link between issue and pr(linked prs for issue)
+    # for req-issue/pr, there is a natural link btw req-issue/pr(req number in issue/pr body)
+    # for issue-issue, there is a natural trace link between issues(traces issues for issue)
     # TODO1: How will we handle the case where
     #       there are multiple target artifacts for a single source artifact?
     # TODO2: Are we going to allow a list of source or target artifact types? Lets not mix them,

@@ -1,10 +1,10 @@
 """TF-IDF tracer."""
-from sklearn.feature_extraction.text import TfidfVectorizer
-import numpy as np
 from scipy.spatial.distance import cosine
+from sklearn.feature_extraction.text import TfidfVectorizer
 from server.trace.tracer import Tracer
 
 # TODO1: Find a way to automatically find the best threshold for similarity
+
 
 class TFIDF(Tracer):
     """TF-IDF trace method."""
@@ -36,7 +36,9 @@ class TFIDF(Tracer):
         # super().find_links(source_artifacts, target_artifacts)
         # TODO1: Implement TF-IDF tracing
         trace_links = []
-        source_vectors, target_vectors = self.create_model(source_artifacts, target_artifacts)
+        source_vectors, target_vectors = self.create_model(
+            source_artifacts, target_artifacts
+        )
         for source_number, source_vector in source_vectors.items():
             for target_number, target_vector in target_vectors.items():
                 similarity = 1 - cosine(source_vector, target_vector)

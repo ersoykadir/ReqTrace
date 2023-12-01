@@ -3,12 +3,12 @@ Kadir Ersoy
 Internship Project
 Auth Router
 """
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException
 
-from server.user import user_crud, user_schema
 from server.database.database import get_db
+from server.user import user_crud, user_schema
 from server.authentication import auth_utils, auth_google_utils
 
 router = APIRouter(
@@ -49,8 +49,10 @@ def oauth2callback(state, code, database: Session = Depends(get_db)):
     # Create token
     token = auth_utils.create_access_token(data={"sub": user.email}, expire=exp)
     access_token = {"access_token": token, "token_type": "bearer"}
-    
+
     # Redirect user to frontend with token
-    response = RedirectResponse(url=f"http://localhost:1234?access_token={access_token['access_token']}")
+    response = RedirectResponse(
+        url=f"http://localhost:1234?access_token={access_token['access_token']}"
+    )
     # print(response)
     return response
