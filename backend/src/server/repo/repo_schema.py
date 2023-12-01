@@ -5,6 +5,7 @@ User Schema
 """
 from pydantic import BaseModel
 
+
 class RepoBase(BaseModel):
     """User base schema"""
 

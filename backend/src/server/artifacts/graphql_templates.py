@@ -4,7 +4,8 @@ This file contains github graphql query templates for each artifact type.
 
 from string import Template
 
-ISSUE_queryTemplate = Template("""{
+ISSUE_queryTemplate = Template(
+    """{
     repository(owner:"$owner", name:"$name") {
         createdAt
         issues(first: 100, after:$cursor) {
@@ -64,8 +65,10 @@ ISSUE_queryTemplate = Template("""{
             }
         }
     }
-}""")
-PR_queryTemplate = Template("""{
+}"""
+)
+PR_queryTemplate = Template(
+    """{
     repository(owner:"$owner", name:"$name") {
         pullRequests(first:50, after:$cursor) {
             nodes{
@@ -111,7 +114,8 @@ PR_queryTemplate = Template("""{
             }
         }
     }
-}""")
+}"""
+)
 # COMMIT_queryTemplate = Template("""{
 #     repository(owner: "$owner", name: "$name") {
 #         ref(qualifiedName: "master") {

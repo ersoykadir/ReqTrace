@@ -96,6 +96,7 @@ def get_requirements(req_file_data):
         requirements.append(req_dict)
     return {"data": requirements}
 
+
 def get_repo_created_at(repo_owner, repo_name):
     """Gets the creation date of the repository."""
     query = """
@@ -109,6 +110,7 @@ def get_repo_created_at(repo_owner, repo_name):
     query = query.replace("$name", repo_name)
     data = get_data_from_api(query)
     return data["data"]["repository"]["createdAt"]
+
 
 def check_repo_exists(repo_owner, repo_name):
     """Checks if the repository exists."""
