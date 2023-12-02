@@ -5,7 +5,7 @@ set -e
 
 # Wait for the backend to be up, if we know where it is.
 if [ -n "$MYSQL_HOST" ]; then
-  ./wait-for-it.sh $MYSQL_HOST:3306
+  ./wait-for-it.sh $MYSQL_HOST:3306 -t 30
 fi
 if [ -n "$NEO4J_HOST" ]; then
   ./wait-for-it.sh $NEO4J_HOST:7687 -t 60
