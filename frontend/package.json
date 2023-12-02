@@ -4,8 +4,7 @@
   "description": "",
   "source": "src/index.html",
   "scripts": {
-    "start": "parcel src/index.html",
-    "dev": "NODE_ENV=development parcel src/index.html",
+    "start": "npx parcel src/index.html",
     "build": "parcel build --dist-dir public"
   },
   "author": "",
