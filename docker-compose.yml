@@ -13,6 +13,17 @@ services:
     depends_on:
       - mysql
       - neo4j
+  frontend:
+    build: ./frontend
+    ports:
+      - 1234:1234
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    networks:
+      - container_network
+    depends_on:
+      - backend
   neo4j:
     image: neo4j:5.13.0-community
     environment:
