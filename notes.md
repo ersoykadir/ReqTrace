@@ -62,7 +62,30 @@ Maybe we should just order links based on similarity, How can this be handled in
     torch
     torchaudio
     torchvision
-  ```
+    ```
 
 - Current embeddings taken from `roberta-base-nli-mean-tokens`
   - Check other options, maybe find most suitable one for our task?
+
+- Frontend
+  - Trace finding takes a lot of time, I might add a loading icon until api returns!
+
+- IDEA: Evaluating all possible links, without threshold cutoff, we can have a section in dashboard 
+  - where user can select a source artifact and play with threshold to view links
+
+- ```
+  match (r:Requirement)
+  where size(r.number) > 1
+  with r
+  match (n)
+  where (n:Issue or n:PullRequest) and n.text contains r.number
+  return r.number as soruce, n.number as target, n.text as target_text
+  ```
+- Avoiding reqs with single digit (1,2) since they produce too many false positives(they match with any number in text)
+- reqs with two digit(1.1, 1.2) can also produce false positives but acceptible
+- This provided a weird feature that might be extremely helpful!! But also problematic
+  - Looking for req number contains in text, for example 1.1
+    - 1.1.2.3 is caught! Nice sub requirements are also related, so helpful
+    - 1.2.1.1.3 is also caught! Not good, a mid part is catched, avoid having dots before the req number
+- Cleaning false positive 
+  - (?<![\.\d])(reqnumber) regex
