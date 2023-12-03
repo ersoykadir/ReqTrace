@@ -8,10 +8,10 @@ class Tracer:
         self.trace_method = None
         self.trace_links = []  # Not sure how to represent trace links yet!!!
 
-    def find_links(self, source_artifacts, target_artifacts):
+    def find_links(self, source_artifacts, target_artifacts, threshold):
         """Find trace links from source artifacts to target artifacts."""
         # Add found trace links to self.trace_links, do not overwrite existing trace links
-        print(f"Finding trace links from {source_artifacts} to {target_artifacts}...")
+        print(f"Finding trace links from {source_artifacts} to {target_artifacts}... with threshold {threshold}")
 
     def find_natural_links(self, source_artifacts, target_artifacts):
         """Find natural trace links from source artifacts to target artifacts."""

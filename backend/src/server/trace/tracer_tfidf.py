@@ -32,9 +32,8 @@ class TFIDF(Tracer):
                 target_vectors[node["number"]] = tfidf_matrix[i]
         return source_vectors, target_vectors
 
-    def find_links(self, source_artifacts, target_artifacts):
-        # super().find_links(source_artifacts, target_artifacts)
-        # TODO1: Implement TF-IDF tracing
+    def find_links(self, source_artifacts, target_artifacts, threshold):
+        """Find trace links between artifacts."""
         trace_links = []
         source_vectors, target_vectors = self.create_model(
             source_artifacts, target_artifacts
@@ -42,7 +41,6 @@ class TFIDF(Tracer):
         for source_number, source_vector in source_vectors.items():
             for target_number, target_vector in target_vectors.items():
                 similarity = 1 - cosine(source_vector, target_vector)
-                if similarity > 0.5:
+                if similarity > threshold:
                     trace_links.append((source_number, target_number, similarity))
-
         self.trace_links = trace_links

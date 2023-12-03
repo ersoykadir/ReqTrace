@@ -40,3 +40,29 @@ Don't forget to setup server as package
 
 Somehow postman forgets the file uploaded after a restart. Dont panic when file field missing error occurs. Reupload file to postman.
 Use MERGE instead of CREATE for putting links, avoids duplicates!
+
+- Frontend
+  - https://www.digitalocean.com/community/tutorials/how-to-bundle-a-web-app-with-parcel-js
+- WordEmbeddings
+  - BERT
+    - https://mccormickml.com/2019/05/14/BERT-word-embeddings-tutorial/
+
+- Word embeddings- bert
+
+Having similarity threshold limits us? Also it introduces inconsistency based on threshold selection
+Maybe we should just order links based on similarity, How can this be handled in visuals?
+  - later on we can do classification based on true links??
+- https://mccormickml.com/2019/05/14/BERT-word-embeddings-tutorial/ DONE
+- https://huggingface.co/tasks/sentence-similarity
+- https://huggingface.co/sentence-transformers
+
+- pytorch requirements.txt configuration for no cpu
+  - ```
+    --extra-index-url https://download.pytorch.org/whl/cpu
+    torch
+    torchaudio
+    torchvision
+  ```
+
+- Current embeddings taken from `roberta-base-nli-mean-tokens`
+  - Check other options, maybe find most suitable one for our task?
