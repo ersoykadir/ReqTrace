@@ -9,7 +9,7 @@ class LLM(Tracer):
         super().__init__()
         self.trace_method = "llm"
 
-    def find_links(self, source_artifacts, target_artifacts):
-        super().find_links(source_artifacts, target_artifacts)
+    def find_links(self, source_artifacts, target_artifacts, threshold):
+        super().find_links(source_artifacts, target_artifacts, threshold)
         # TODO1: Implement LLM tracing
         raise NotImplementedError

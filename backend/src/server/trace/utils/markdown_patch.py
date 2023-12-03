@@ -1,8 +1,8 @@
 """
 Markdown patch to remove markdown formatting from text
 """
-from markdown import Markdown
 from io import StringIO
+from markdown import Markdown
 
 
 def unmark_element(element, stream=None):

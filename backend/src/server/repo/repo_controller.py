@@ -241,22 +241,19 @@ async def create_trace_links(
     # TODO4: trace methods -> tfidf, word_embeddings(from bert or LLM), direct llm training
     return {"message": "Trace links created", "num_of_links": len(trace_links)}
 
+
 @router.delete("/{repo_id}/trace")
 async def delete_trace_links(
     repo_id: str,
 ):
-    """
-    Clear all trace links
-    """
+    """Clear all trace links"""
     Neo4jConnector().clear_trace_links(repo_id)
     return {"message": "Trace links deleted"}
 
 
 @router.get("/{repo_id}")
-async def get_repo_details(
-    repo_id: str,
-    user: user_schema.User = Depends(get_current_user),
-):
+async def get_repo_details(repo_id: str):
+    """Get repo details"""
     if not Neo4jConnector().check_database_exists(repo_id):
         return {"message": "Repo does not exist"}
     details = {}

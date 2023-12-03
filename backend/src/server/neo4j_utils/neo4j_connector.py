@@ -171,7 +171,7 @@ class Neo4jConnector:
             detach delete n
         """
         self.execute_query(query, database)
-    
+
     def clear_trace_links(self, database):
         """Delete all trace links from database."""
         query = """
@@ -235,7 +235,7 @@ class Neo4jConnector:
         """
         result = self.execute_query(query, database)
         return result[0].get("num_of_trace_links")
-    
+
     def get_num_of_artifacts(self, database, label):
         """Get all artifacts."""
         query = (
