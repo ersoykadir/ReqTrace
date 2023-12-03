@@ -171,6 +171,14 @@ class Neo4jConnector:
             detach delete n
         """
         self.execute_query(query, database)
+    
+    def clear_trace_links(self, database):
+        """Delete all trace links from database."""
+        query = """
+            MATCH ()-[n:tracesTo]->()
+            delete n
+        """
+        self.execute_query(query, database)
 
     def filter_artifacts(self, date, database):
         """Delete all artifacts created before given date."""
@@ -218,6 +226,26 @@ class Neo4jConnector:
 
         params = {"traces": traces}
         self.execute_query(query, database, params)
+
+    def get_num_of_trace_links(self, database):
+        """Get all trace links."""
+        query = """
+            MATCH ()-[n:tracesTo]->()
+            RETURN count(n) as num_of_trace_links
+        """
+        result = self.execute_query(query, database)
+        return result[0].get("num_of_trace_links")
+    
+    def get_num_of_artifacts(self, database, label):
+        """Get all artifacts."""
+        query = (
+            f"""
+            MATCH (n:{label})
+            RETURN count(n) as num_of_artifacts
+        """
+        ).format(label=label)
+        result = self.execute_query(query, database)
+        return result[0].get("num_of_artifacts")
 
     # def create_trace_links(self, traces, label, database):
     #     """ Create traces between artifacts."""

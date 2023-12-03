@@ -156,6 +156,7 @@ class TraceLink(BaseModel):
     source_artifact_type: str
     target_artifact_type: str
     trace_method: str
+    threshold: float
 
 
 tracers = {
@@ -217,7 +218,7 @@ async def create_trace_links(
     # Trace method will return trace links
     tracer = tracers[trace_link.trace_method]
     # tracer.find_natural_links(source_artifacts, target_artifacts)
-    tracer.find_links(source_artifacts, target_artifacts)
+    tracer.find_links(source_artifacts, target_artifacts, trace_link.threshold)
     trace_links = tracer.get_trace_links()
 
     Neo4jConnector().create_trace_links(
@@ -238,4 +239,34 @@ async def create_trace_links(
     # TODO3: How will we handle the case where
     #       the source and target artifact types are the same?
     # TODO4: trace methods -> tfidf, word_embeddings(from bert or LLM), direct llm training
-    return {"message": "Trace links created"}
+    return {"message": "Trace links created", "num_of_links": len(trace_links)}
+
+@router.delete("/{repo_id}/trace")
+async def delete_trace_links(
+    repo_id: str,
+):
+    """
+    Clear all trace links
+    """
+    Neo4jConnector().clear_trace_links(repo_id)
+    return {"message": "Trace links deleted"}
+
+
+@router.get("/{repo_id}")
+async def get_repo_details(
+    repo_id: str,
+    user: user_schema.User = Depends(get_current_user),
+):
+    if not Neo4jConnector().check_database_exists(repo_id):
+        return {"message": "Repo does not exist"}
+    details = {}
+    # Get repo name and owner
+    # Get number of artifacts for each type
+    artifact_types = Neo4jConnector().get_node_labels(repo_id)
+    for artifact_type in artifact_types:
+        details[artifact_type] = Neo4jConnector().get_num_of_artifacts(
+            repo_id, artifact_type
+        )
+    # Get number of trace links
+    details["trace_links"] = Neo4jConnector().get_num_of_trace_links(repo_id)
+    return details
