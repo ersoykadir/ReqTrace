@@ -204,11 +204,11 @@ async def create_trace_links(
         }
 
     # Get all source artifacts of given type from the database
-    source_artifacts = Neo4jConnector().get_artifact_nodes_filtered(
+    source_artifacts = Neo4jConnector().get_artifact_nodes_from_label(
         trace_link.source_artifact_type, repo_id
     )
     # Get all target artifacts of given type from the database
-    target_artifacts = Neo4jConnector().get_artifact_nodes_filtered(
+    target_artifacts = Neo4jConnector().get_artifact_nodes_from_label(
         trace_link.target_artifact_type, repo_id
     )
 
@@ -217,7 +217,7 @@ async def create_trace_links(
     # Call trace method with source and target artifacts
     # Trace method will return trace links
     tracer = tracers[trace_link.trace_method]
-    # tracer.find_natural_links(source_artifacts, target_artifacts)
+    tracer.find_natural_links(source_artifacts, target_artifacts)
     tracer.find_links(source_artifacts, target_artifacts, trace_link.threshold)
     trace_links = tracer.get_trace_links()
 
@@ -262,7 +262,7 @@ async def get_repo_details(repo_id: str):
     artifact_types = Neo4jConnector().get_node_labels(repo_id)
     for artifact_type in artifact_types:
         details[artifact_type] = Neo4jConnector().get_num_of_artifacts(
-            repo_id, artifact_type
+            artifact_type, repo_id
         )
     # Get number of trace links
     details["trace_links"] = Neo4jConnector().get_num_of_trace_links(repo_id)

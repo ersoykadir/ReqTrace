@@ -131,7 +131,7 @@ class Neo4jConnector:
         result = self.execute_query(query, database)
         return result
 
-    def get_artifact_nodes_filtered(self, label, database):
+    def get_artifact_nodes_from_label(self, label, database):
         """Get artifact nodes from given label."""
         query = (
             f"""
@@ -139,6 +139,18 @@ class Neo4jConnector:
             RETURN n.number as number, n.text as text
         """
         ).format(label=label)
+        result = self.execute_query(query, database)
+        return result
+
+    def get_artifact_nodes_filtered(self, filter_text, database):
+        """Get artifact nodes from given label."""
+        query = (
+            f"""
+            MATCH (n)
+            where (n:Issue or n:PullRequest) and n.text contains '{filter_text}'
+            RETURN n.number as number, n.text as text
+        """
+        ).format(filter_text=filter_text)
         result = self.execute_query(query, database)
         return result
 
@@ -236,7 +248,7 @@ class Neo4jConnector:
         result = self.execute_query(query, database)
         return result[0].get("num_of_trace_links")
 
-    def get_num_of_artifacts(self, database, label):
+    def get_num_of_artifacts(self, label, database):
         """Get all artifacts."""
         query = (
             f"""
@@ -246,6 +258,28 @@ class Neo4jConnector:
         ).format(label=label)
         result = self.execute_query(query, database)
         return result[0].get("num_of_artifacts")
+
+    def get_issue_issuepr_natural_links(self, database):
+        """Get natural trace links between issues and issues/prs."""
+        query = """
+            MATCH (n:Issue)
+            RETURN n.number as source, n.related_prs+n.trackedIssues as targets
+        """
+        result = self.execute_query(query, database)
+        return result
+
+    def get_artifact_nodes_containing_req_number(self, database):
+        """Get all artifact nodes containing requirement numbers."""
+        query = """
+            match (r:Requirement)
+            where size(r.number) > 1
+            with r
+            match (n)
+            where (n:Issue or n:PullRequest) and n.text contains r.number
+            return r.number as soruce, n.number as target, n.text as target_text
+        """
+        result = self.execute_query(query, database)
+        return result
 
     # def create_trace_links(self, traces, label, database):
     #     """ Create traces between artifacts."""

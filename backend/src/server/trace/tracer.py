@@ -1,4 +1,6 @@
 """Tracer module."""
+import re
+from server.neo4j_utils.neo4j_connector import Neo4jConnector
 
 
 class Tracer:
@@ -15,13 +17,32 @@ class Tracer:
             f"Finding links from {source_artifacts} to {target_artifacts} w/ threshold {threshold}"
         )
 
-    def find_natural_links(self, source_artifacts, target_artifacts):
+    def find_natural_links(self, database):
         """Find natural trace links from source artifacts to target artifacts."""
         # Add found trace links to self.trace_links, do not overwrite existing trace links
-        print(
-            f"Finding natural trace links from {source_artifacts} to {target_artifacts}..."
+        # Issue-Issue and Issue-PR links already exist in the database
+        natural_links = []
+        issue_to_targets = Neo4jConnector().get_issue_issuepr_natural_links(database)
+        for link in issue_to_targets:
+            for target in link["targets"]:
+                natural_links.append((link["source"], target, 1))
+        # Req-Issue and Req-PR links can be found by searching for req number in issue/pr text
+        req_to_artifacts = Neo4jConnector().get_artifact_nodes_containing_req_number(
+            database
         )
-        raise NotImplementedError
+        # Clean false positives
+        for link in req_to_artifacts:
+            if self.regex_check(link["source"], link["target_text"]):
+                natural_links.append((link["source"], link["target"], 1))
+        self.trace_links.extend(natural_links)
+
+    def regex_check(self, req_number, text):
+        """Check if the req number is in the text."""
+        pattern = r"(?<![\.\d])" + re.escape(req_number)
+        match = re.search(pattern, text)
+        if match:
+            return True
+        return False
 
     def get_trace_links(self):
         """Return trace links."""
