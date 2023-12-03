@@ -47,4 +47,4 @@ class WordEmbeddings(Tracer):
                 similarity = 1 - cosine(source_vector, target_vector)
                 if similarity > threshold:  # Maybe
                     trace_links.append((source_number, target_number, similarity))
-        self.trace_links = trace_links
+        self.trace_links.extend(trace_links)
