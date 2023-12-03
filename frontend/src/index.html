@@ -50,6 +50,9 @@
 
       <div class="separator"></div>
       <h2 id="repoHeader"> Repository: </h2>
+      <div id="repoDetailsSection">
+        <!-- Display repository values here -->
+      </div>
     </div>
     <div class="row">
       <div class="col-md-6">
@@ -57,8 +60,7 @@
         <form id="populateRepoForm" action="/" method="post" enctype="multipart/form-data" onsubmit="populateRepo(event)">
           <div class="mb-3">
             <label for="file" class="form-label">SDAs: Taken from Github</label>
-          </div>
-          <div class="mb-3">
+            <br>
             <label for="file" class="form-label">Requirements File:</label>
             <input type="file" class="form-control" id="file" name="file" accept=".txt, .pdf, .docx, .md" required>
           </div>
@@ -90,8 +92,18 @@
             </div>
             <input type="hidden" id="selectedTraceMethod" name="selectedTraceMethod" value="">
           </div>
+          <div class="mb-3">
+            <div class="input-container">
+              <label for="floatInput">Threshold:</label>
+              <input type="range" id="sliderInput" name="sliderInput" min="0" max="1" step="0.01">
+              <input type="number" id="floatInput" name="floatInput" step="0.01" min="0" max="1">
+            </div>
+            <input type="hidden" id="selectedThreshold" name="selectedThreshold" value="">
+          </div>
           <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="button" class="btn btn-primary" onclick="deleteTraceLinks()">Delete Links</button>
         </form>
+        <p id="resultMessage"></p>
       </div>
     </div>
   </div>
@@ -104,5 +116,24 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script>
+    // JavaScript to synchronize the values
+    const floatInput = document.getElementById('floatInput');
+    const sliderInput = document.getElementById('sliderInput');
+    const selectedThreshold = document.getElementById('selectedThreshold');
+
+    floatInput.addEventListener('input', updateSlider);
+    sliderInput.addEventListener('input', updateFloatInput);
+
+    function updateSlider() {
+        sliderInput.value = floatInput.value;
+        selectedThreshold.value = floatInput.value;
+    }
+
+    function updateFloatInput() {
+        floatInput.value = sliderInput.value;
+        selectedThreshold.value = sliderInput.value;
+    }
+</script>
 </body>
 </html>

@@ -6,6 +6,7 @@ async function start(){
     await processAccessToken();
     await updateRepoOptions();
     await updateTraceMethodOptions();
+    syncSliderValue();
 }
 // Function to redirect to a new page
 async function redirectToPage(page) {
@@ -138,10 +139,7 @@ async function setRepo() {
         // alert('Selected Repository: ' + selectedRepo);
         updateArtifactOptions('source');
         updateArtifactOptions('target');
-        var repoHeader = document.getElementById('repoHeader');
-        repo_owner = selectedRepo.split('.')[0];
-        repo_name = selectedRepo.split('.')[1];
-        repoHeader.innerHTML = 'Repository: ' + repo_owner + '/' + repo_name;
+        updateRepoDetailsSection();
     } else {
         // No repository method selected, you can handle this case accordingly
         console.warn('No Repository Selected');
@@ -221,6 +219,7 @@ async function populateRepo(event) {
         return;
     }
     alert('Repo populated.');
+    updateRepoDetailsSection();
 }
 
 // Function to get the selected file
@@ -252,6 +251,7 @@ async function createTraceLinks(event) {
     var selectedSourceArtifact = document.getElementById('sourceSelectedArtifact').value;
     var selectedTargetArtifact = document.getElementById('targetSelectedArtifact').value;
     var selectedTraceMethod = document.getElementById('selectedTraceMethod').value;
+    var selectedThreshold = document.getElementById('selectedThreshold').value;
     if (!selectedRepo) {
         alert('No repo selected');
         return;
@@ -273,7 +273,8 @@ async function createTraceLinks(event) {
     var body = {
         'source_artifact_type': selectedSourceArtifact,
         'target_artifact_type': selectedTargetArtifact,
-        'trace_method': selectedTraceMethod
+        'trace_method': selectedTraceMethod,
+        'threshold': selectedThreshold
     };
     // body = JSON.stringify(body);
     const response = await makeApiRequest(uri, 'POST', body, false);
@@ -281,7 +282,12 @@ async function createTraceLinks(event) {
         alert('ResponseCreateTraceLinks: ' + JSON.stringify(response) + response.status);
         return;
     }
-    alert('Trace links created.');
+    const resultMessage = document.getElementById('resultMessage');
+    // resultMessage.innerHTML = 'Trace links created.';
+    const num_of_links = response.body.num_of_links;
+    resultMessage.textContent = num_of_links + ' trace links created.';
+    alert(num_of_links + ' trace links created.');
+    updateRepoDetailsSection();
 }
 
 // Function to update the artifact options
@@ -350,4 +356,80 @@ async function updateTraceMethodOptions() {
         });
         traceMethodButtons.appendChild(button);
     });
+}
+
+// Function to synchronize slider value with floating number input
+function syncSliderValue(slider, input) {
+    const floatInput = document.getElementById('floatInput');
+    const sliderInput = document.getElementById('sliderInput');
+    const selectedThreshold = document.getElementById('selectedThreshold');
+
+    floatInput.addEventListener('input', updateSlider);
+    sliderInput.addEventListener('input', updateFloatInput);
+
+    function updateSlider() {
+        sliderInput.value = floatInput.value;
+        selectedThreshold.value = floatInput.value;
+    }
+
+    function updateFloatInput() {
+        floatInput.value = sliderInput.value;
+        selectedThreshold.value = sliderInput.value;
+    }
+}
+
+// Function to delete all trace links
+async function deleteTraceLinks(){
+    var selectedRepo = localStorage.getItem('selected_repo');
+    if (!selectedRepo) {
+        alert('No repo selected');
+        return;
+    }
+    const uri = 'http://localhost:3000/api/repo/' + selectedRepo + '/trace';
+    const response = await makeApiRequest(uri, 'DELETE', null, false);
+    if (response.status != 200) {
+        alert('ResponseDeleteTraceLinks: ' + JSON.stringify(response) + response.status);
+        return;
+    }
+    alert('Trace links deleted.');
+}
+
+// ----------------------------------------
+
+// Function to update repository values section
+async function updateRepoDetailsSection() {
+    var selectedRepo = localStorage.getItem('selected_repo');
+    if (!selectedRepo) {
+        alert('No repo selected');
+        return;
+    }
+    const repoValues = await getRepoDetails();
+
+    const repoValuesSection = document.getElementById('repoDetailsSection');
+    // Clear existing data
+    repoValuesSection.innerHTML = '';
+    const repo_name = document.createElement('p');
+    repo_name.textContent = 'Name: ' + selectedRepo.split('.')[0] + '/' + selectedRepo.split('.')[1];
+    repoValuesSection.appendChild(repo_name);
+    // for each data in repoValues, add a new paragraph
+    for (const [key, value] of Object.entries(repoValues)) {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = key + ': ' + value;
+        repoValuesSection.appendChild(paragraph);
+    }
+    repoValuesSection.innerHTML = repoValuesHTML;
+}
+
+// Function to get repository values
+async function getRepoDetails() {
+    // Replace this with actual logic to fetch repository values
+    var selectedRepo = localStorage.getItem('selected_repo');
+    const uri = 'http://localhost:3000/api/repo/' + selectedRepo;
+    const response = await makeApiRequest(uri, 'GET', null, false);
+    if (response.status != 200) {
+        alert('ResponseGetRepoDetails: ' + JSON.stringify(response) + response.status);
+        return;
+    }
+    console.log(response.body);
+    return response.body;
 }
