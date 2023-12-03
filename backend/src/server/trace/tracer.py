@@ -12,7 +12,7 @@ class Tracer:
         """Find trace links from source artifacts to target artifacts."""
         # Add found trace links to self.trace_links, do not overwrite existing trace links
         print(
-            f"Finding trace links from {source_artifacts} to {target_artifacts}... with threshold {threshold}"
+            f"Finding links from {source_artifacts} to {target_artifacts} w/ threshold {threshold}"
         )
 
     def find_natural_links(self, source_artifacts, target_artifacts):
