@@ -46,12 +46,13 @@ async function makeApiRequest(apiUrl, selectedMethod, body, form) {
         }
         const response = await fetch(apiUrl, data);
         if (response.status == 401) {
+            console.log('Token expired or invalid. Please login again.');
+            // redirectToPage('http://localhost:3000/api/auth/google');
             alert('Token expired or invalid. Please login again.');
-            redirectToPage('http://localhost:3000/api/auth/google');
         }
         response_body = await response.json();
         if (response.status != 200) {
-            alert('ResponseMakeApiRequest: ' + JSON.stringify(response_body) + response.status);
+            console.log('ResponseMakeApiRequest: ' + JSON.stringify(response_body) + response.status);
         }
         return {
             status: response.status,
@@ -59,7 +60,7 @@ async function makeApiRequest(apiUrl, selectedMethod, body, form) {
         }
     } catch (error) {
         // console.error("Error: ", error);
-        alert('Error, failed to make API request. -> ', error.message);
+        console.log('Error, failed to make API request. -> ', error.message);
         throw error;
     }
 }
@@ -114,14 +115,31 @@ async function createRepoForm() {
         repo_name: repoName
     };
     // body = JSON.parse(JSON.stringify(body));
+    // Add Creating... label to the form
+    const creatingLabel = messageLabel('Creating...');
+    createRepoForm.appendChild(creatingLabel);
     const response = await makeApiRequest('http://localhost:3000/api/repo', 'POST', body, false);
     if (response.status != 200) {
-        alert('ResponseCreateRepoForm: ' + JSON.stringify(response) + response.status);
+        console.log('ResponseCreateRepoForm: ' + JSON.stringify(response) + response.status);
+        const failed = messageLabel('Failed to create repository.');
+        createRepoForm.appendChild(failed);
+        return;
     }
-    else {
-        // alert('ResponseCreateRepoForm: ' + JSON.stringify(response) + response.status);
-        await updateRepoOptions();
+    // alert('ResponseCreateRepoForm: ' + JSON.stringify(response) + response.status);
+    await updateRepoOptions();
+    const success = messageLabel('Repository created.');
+    createRepoForm.appendChild(success);
+}
+
+function messageLabel(message) {
+    const oldMessageLabel = document.getElementById('messageLabel');
+    if (oldMessageLabel){
+        oldMessageLabel.remove();
     }
+    const messageLabel = document.createElement('label');
+    messageLabel.textContent = message;
+    messageLabel.id = 'messageLabel';
+    return messageLabel;
 }
 
 // Function to set the selected repository and update the artifact options
@@ -199,6 +217,7 @@ async function updateRepoOptions() {
 // Function to populate a repository with github artifacts and given requirements file
 async function populateRepo(event) {
     event.preventDefault(); // Prevent the default form submission behavior
+    var populateRepoForm = document.getElementById('populateRepoForm');
     var selectedRepo = localStorage.getItem('selected_repo');
     var selectedFile = await getSelectedFile();
     if (!selectedFile) {
@@ -211,14 +230,20 @@ async function populateRepo(event) {
     var formData = new FormData();
     formData.append('requirements_file', selectedFile);
 
+    const populatingLabel = messageLabel('Populating...');
+    populateRepoForm.appendChild(populatingLabel);
     const response = await makeApiRequest(uri, 'POST', formData, true);
     updateArtifactOptions('source');
     updateArtifactOptions('target');
     if (response.status != 200) {
-        alert('ResponsePopulateRepo: ' + JSON.stringify(response) + response.status);
+        console.log('ResponsePopulateRepo: ' + JSON.stringify(response) + response.status);
+        const failed = messageLabel('Failed to populate repository.');
+        populateRepoForm.appendChild(failed);
         return;
     }
-    alert('Repo populated.');
+    // alert('Repo populated.');
+    const success = messageLabel('Repository populated.');
+    populateRepoForm.appendChild(success);
     updateRepoDetailsSection();
 }
 
@@ -247,6 +272,7 @@ async function getSelectedFile() {
 // Function to make a create trace links request
 async function createTraceLinks(event) {
     event.preventDefault();
+    var createTraceLinksForm = document.getElementById('createTraceLinks');
     var selectedRepo = localStorage.getItem('selected_repo');
     var selectedSourceArtifact = document.getElementById('sourceSelectedArtifact').value;
     var selectedTargetArtifact = document.getElementById('targetSelectedArtifact').value;
@@ -276,17 +302,21 @@ async function createTraceLinks(event) {
         'trace_method': selectedTraceMethod,
         'threshold': selectedThreshold
     };
-    // body = JSON.stringify(body);
+    var creatingLabel = messageLabel('Creating...');
+    createTraceLinksForm.appendChild(creatingLabel);
     const response = await makeApiRequest(uri, 'POST', body, false);
     if (response.status != 200) {
-        alert('ResponseCreateTraceLinks: ' + JSON.stringify(response) + response.status);
+        console.log('ResponseCreateTraceLinks: ' + JSON.stringify(response) + response.status);
+        const failed = messageLabel('Failed to create trace links.');
         return;
     }
-    const resultMessage = document.getElementById('resultMessage');
+    // const resultMessage = document.getElementById('resultMessage');
     // resultMessage.innerHTML = 'Trace links created.';
     const num_of_links = response.body.num_of_links;
-    resultMessage.textContent = num_of_links + ' trace links created.';
-    alert(num_of_links + ' trace links created.');
+    successMessage = num_of_links + ' trace links created.';
+    const success = messageLabel(successMessage);
+    createTraceLinksForm.appendChild(success);
+    // alert(num_of_links + ' trace links created.');
     updateRepoDetailsSection();
 }
 
@@ -388,7 +418,7 @@ async function deleteTraceLinks(){
     const uri = 'http://localhost:3000/api/repo/' + selectedRepo + '/trace';
     const response = await makeApiRequest(uri, 'DELETE', null, false);
     if (response.status != 200) {
-        alert('ResponseDeleteTraceLinks: ' + JSON.stringify(response) + response.status);
+        console.log('ResponseDeleteTraceLinks: ' + JSON.stringify(response) + response.status);
         return;
     }
     alert('Trace links deleted.');
@@ -427,7 +457,7 @@ async function getRepoDetails() {
     const uri = 'http://localhost:3000/api/repo/' + selectedRepo;
     const response = await makeApiRequest(uri, 'GET', null, false);
     if (response.status != 200) {
-        alert('ResponseGetRepoDetails: ' + JSON.stringify(response) + response.status);
+        console.log('ResponseGetRepoDetails: ' + JSON.stringify(response) + response.status);
         return;
     }
     console.log(response.body);
