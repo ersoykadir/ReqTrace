@@ -11,7 +11,7 @@ async function start(){
 // Function to redirect to a new page
 async function redirectToPage(page) {
     // window.location = page;
-    window.open(page, '_newtab');
+    window.open(page);
 }
 
 // ----------------------------------------
