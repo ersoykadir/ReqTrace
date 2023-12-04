@@ -43,4 +43,4 @@ class TFIDF(Tracer):
                 similarity = 1 - cosine(source_vector, target_vector)
                 if similarity > threshold:
                     trace_links.append((source_number, target_number, similarity))
-        self.trace_links.extend(trace_links)
+        return trace_links

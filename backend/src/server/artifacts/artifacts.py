@@ -1,7 +1,6 @@
 """
 Acquires software artifacts(issue, pr, commmit, requirement).
 """
-
 import re
 import requests
 from bs4 import BeautifulSoup

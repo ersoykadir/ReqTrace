@@ -239,6 +239,26 @@ class Neo4jConnector:
         params = {"traces": traces}
         self.execute_query(query, database, params)
 
+    def create_trace_links_v2(self, source_artifact, traces, database):
+        """Create traces between artifacts."""
+        print(traces)
+        query = (
+            f"""
+            UNWIND $traces AS trace
+            MATCH (r:{source_artifact})
+            WHERE r.number = trace[0]
+            WITH r, trace[1] as target, trace[2] as weight
+            MATCH (a)
+            WHERE (a:Issue or a:PullRequest) and a.number = target
+            MERGE (a)<-[t:tracesTo]-(r)
+            SET t.weight = weight
+            RETURN *
+        """
+        ).format(source_artifact=source_artifact)
+
+        params = {"traces": traces}
+        self.execute_query(query, database, params)
+
     def get_num_of_trace_links(self, database):
         """Get all trace links."""
         query = """
@@ -276,7 +296,7 @@ class Neo4jConnector:
             with r
             match (n)
             where (n:Issue or n:PullRequest) and n.text contains r.number
-            return r.number as soruce, n.number as target, n.text as target_text
+            return r.number as source, n.number as target, n.text as target_text
         """
         result = self.execute_query(query, database)
         return result

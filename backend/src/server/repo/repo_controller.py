@@ -5,7 +5,7 @@ from server.config import Config
 from server.user import user_schema
 from server.artifacts import artifacts
 from server.authentication.auth_utils import get_current_user
-from server.trace import tracer_llm, tracer_tfidf, tracer_word_embeddings
+from server.trace import tracer_llm, tracer_tfidf, tracer_word_embeddings, tracer
 
 # from server.database.database import get_db
 from server.neo4j_utils.neo4j_connector import Neo4jConnector
@@ -147,7 +147,17 @@ def populate_repo(
     requirements = artifacts.get_requirements(requirements_file)
     populate_db_requirements(requirements, repo_id)
 
-    return {"message": "Database populated successfully"}
+    # Create natural trace links
+    _tracer = tracer.Tracer()
+    natural_trace_links = _tracer.find_natural_links(repo_id)
+
+    for link_source, trace_links in natural_trace_links.items():
+        Neo4jConnector().create_trace_links_v2(
+            link_source,
+            trace_links,
+            repo_id,
+        )
+    return {"message": "Database populated successfully, natural trace links created."}
 
 
 class TraceLink(BaseModel):
@@ -216,10 +226,8 @@ async def create_trace_links(
     # Create tracer object with given trace method
     # Call trace method with source and target artifacts
     # Trace method will return trace links
-    tracer = tracers[trace_link.trace_method]
-    tracer.find_natural_links(source_artifacts, target_artifacts)
-    tracer.find_links(source_artifacts, target_artifacts, trace_link.threshold)
-    trace_links = tracer.get_trace_links()
+    _tracer = tracers[trace_link.trace_method]
+    trace_links = _tracer.find_links(source_artifacts, target_artifacts, trace_link.threshold)
 
     Neo4jConnector().create_trace_links(
         trace_link.source_artifact_type,
