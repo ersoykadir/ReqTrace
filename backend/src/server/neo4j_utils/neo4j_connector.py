@@ -184,12 +184,22 @@ class Neo4jConnector:
         """
         self.execute_query(query, database)
 
-    def clear_trace_links(self, database):
+    def delete_all_trace_links(self, database):
         """Delete all trace links from database."""
         query = """
             MATCH ()-[n:tracesTo]->()
             delete n
         """
+        self.execute_query(query, database)
+    
+    def delete_trace_links(self, source_artifact, target_artifact, database):
+        """Delete trace links between given artifacts."""
+        query = (
+            f"""
+            MATCH (n:{source_artifact})-[t:tracesTo]->(m:{target_artifact})
+            delete t
+        """
+        ).format(source_artifact=source_artifact, target_artifact=target_artifact)
         self.execute_query(query, database)
 
     def filter_artifacts(self, date, database):

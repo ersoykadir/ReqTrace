@@ -169,6 +169,13 @@ class TraceLink(BaseModel):
     threshold: float
 
 
+class TraceLinkDelete(BaseModel):
+    """Trace link between two artifacts of given types."""
+
+    source_artifact_type: str
+    target_artifact_type: str
+
+
 tracers = {
     "tfidf": tracer_tfidf.TFIDF(),
     "word_embeddings": tracer_word_embeddings.WordEmbeddings(),
@@ -176,6 +183,7 @@ tracers = {
 }
 
 
+# TODO: Should we reset/delete the trace links before creating new ones?
 # Build trace links
 # Expect user to give (source artifact, target artifact) and trace method
 @router.post("/{repo_id}/trace")
@@ -251,12 +259,22 @@ async def create_trace_links(
 
 
 @router.delete("/{repo_id}/trace")
-async def delete_trace_links(
+async def delete_all_trace_links(
     repo_id: str,
 ):
-    """Clear all trace links"""
-    Neo4jConnector().clear_trace_links(repo_id)
+    """Delete all trace links"""
+    Neo4jConnector().delete_all_trace_links(repo_id)
     return {"message": "Trace links deleted"}
+
+
+@router.delete("/{repo_id}/trace")
+async def delete_trace_links(
+    repo_id: str,
+    trace_link: TraceLinkDelete,
+):
+    """Delete trace links between given artifact types"""
+    Neo4jConnector().delete_trace_links(trace_link.source_artifact_type, trace_link.target_artifact_type, repo_id)
+    return {"message": "Trace links between given artifact types deleted"}
 
 
 @router.get("/{repo_id}")

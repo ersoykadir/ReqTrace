@@ -225,3 +225,5 @@ typings/
 dist/
 .cache/
 .parcel-cache/
+
+data_ners

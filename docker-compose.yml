@@ -35,7 +35,6 @@ services:
       - CLASSPATH_PREFIX=/var/lib/neo4j/lib/dozerdb-plugin-5.13.0.0-alpha.1.jar
     cap_add:
       - SYS_RESOURCE
-    restart: unless-stopped
     ports:
       - 7474:7474
       - 7687:7687
@@ -50,7 +49,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: secret
       MYSQL_DATABASE: reqTrace
-    restart: unless-stopped
     ports:
       - 3306:3306
     volumes:
