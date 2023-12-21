@@ -191,7 +191,7 @@ class Neo4jConnector:
             delete n
         """
         self.execute_query(query, database)
-    
+
     def delete_trace_links(self, source_artifact, target_artifact, database):
         """Delete trace links between given artifacts."""
         query = (

@@ -183,7 +183,7 @@ tracers = {
 }
 
 
-# TODO: Should we reset/delete the trace links before creating new ones?
+# TODO1: Should we reset/delete the trace links before creating new ones?
 # Build trace links
 # Expect user to give (source artifact, target artifact) and trace method
 @router.post("/{repo_id}/trace")
@@ -235,7 +235,9 @@ async def create_trace_links(
     # Call trace method with source and target artifacts
     # Trace method will return trace links
     _tracer = tracers[trace_link.trace_method]
-    trace_links = _tracer.find_links(source_artifacts, target_artifacts, trace_link.threshold)
+    trace_links = _tracer.find_links(
+        source_artifacts, target_artifacts, trace_link.threshold
+    )
 
     Neo4jConnector().create_trace_links(
         trace_link.source_artifact_type,
@@ -273,7 +275,9 @@ async def delete_trace_links(
     trace_link: TraceLinkDelete,
 ):
     """Delete trace links between given artifact types"""
-    Neo4jConnector().delete_trace_links(trace_link.source_artifact_type, trace_link.target_artifact_type, repo_id)
+    Neo4jConnector().delete_trace_links(
+        trace_link.source_artifact_type, trace_link.target_artifact_type, repo_id
+    )
     return {"message": "Trace links between given artifact types deleted"}
 
 

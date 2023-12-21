@@ -89,3 +89,5 @@ Maybe we should just order links based on similarity, How can this be handled in
     - 1.2.1.1.3 is also caught! Not good, a mid part is catched, avoid having dots before the req number
 - Cleaning false positive 
   - (?<![\.\d])(reqnumber) regex
+
+- python -m spacy download en_core_web_sm

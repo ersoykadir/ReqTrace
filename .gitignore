@@ -226,4 +226,6 @@ dist/
 .cache/
 .parcel-cache/
 
-data_ners
+# Optional
+ner
+trials

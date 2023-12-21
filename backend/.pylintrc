@@ -4,4 +4,4 @@ init-hook="from pylint.config import find_default_config_files; import os, sys; 
 
 [MESSAGES CONTROL]
 
-disable=too-few-public-methods, duplicate-code,
+disable=too-few-public-methods, duplicate-code, too-many-public-methods

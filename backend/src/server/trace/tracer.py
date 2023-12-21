@@ -49,6 +49,6 @@ class Tracer:
             return True
         return False
 
-    def get_trace_links(self):
-        """Return trace links."""
-        raise NotImplementedError
+    # def get_trace_links(self):
+    #     """Return trace links."""
+    #     raise NotImplementedError
