@@ -187,6 +187,8 @@ async function updateRepoOptions() {
     localStorage.removeItem('selected_repo');
 
     const selectRepoForm = document.getElementById('selectRepoForm');
+    const loadingLabel = messageLabel('Loading...');
+    selectRepoForm.appendChild(loadingLabel);
     const repoOptionsContainer = selectRepoForm.querySelector('.scrollable-options');
 
     // Clear existing options
@@ -205,11 +207,13 @@ async function updateRepoOptions() {
         option.innerHTML = `
             <input class="form-check-input" type="radio" name="existing_repos" id="${repo}" value="${repo}">
             <label class="form-check-label" for="${repo}">
-                ${repo_combined}
+                ${repo}
             </label>
         `;
         repoOptionsContainer.appendChild(option);
     });
+    const success = messageLabel('Repository options updated.');
+    selectRepoForm.appendChild(success);
 }
 
 //  ----------------------------------------
@@ -308,15 +312,12 @@ async function createTraceLinks(event) {
     if (response.status != 200) {
         console.log('ResponseCreateTraceLinks: ' + JSON.stringify(response) + response.status);
         const failed = messageLabel('Failed to create trace links.');
+        createTraceLinksForm.appendChild(failed);
         return;
     }
-    // const resultMessage = document.getElementById('resultMessage');
-    // resultMessage.innerHTML = 'Trace links created.';
-    const num_of_links = response.body.num_of_links;
-    successMessage = num_of_links + ' trace links created.';
+    successMessage = response.body.num_of_links + ' trace links created.';
     const success = messageLabel(successMessage);
     createTraceLinksForm.appendChild(success);
-    // alert(num_of_links + ' trace links created.');
     updateRepoDetailsSection();
 }
 
@@ -409,19 +410,56 @@ function syncSliderValue(slider, input) {
 }
 
 // Function to delete all trace links
-async function deleteTraceLinks(){
+async function deleteAllTraceLinks(){
+    var createTraceLinksForm = document.getElementById('createTraceLinks');
     var selectedRepo = localStorage.getItem('selected_repo');
     if (!selectedRepo) {
         alert('No repo selected');
         return;
     }
+    var deletingLabel = messageLabel('Deleting...');
+    createTraceLinksForm.appendChild(deletingLabel);
     const uri = 'http://localhost:3000/api/repo/' + selectedRepo + '/trace';
     const response = await makeApiRequest(uri, 'DELETE', null, false);
     if (response.status != 200) {
         console.log('ResponseDeleteTraceLinks: ' + JSON.stringify(response) + response.status);
+        const failed = messageLabel('Failed to delete trace links.');
+        createTraceLinksForm.appendChild(failed);
         return;
     }
-    alert('Trace links deleted.');
+        const success = messageLabel('All trace links deleted.');
+    createTraceLinksForm.appendChild(success);
+    updateRepoDetailsSection();
+}
+
+// Function to delete trace links of a specific type
+async function deleteTraceLinks(){
+    var createTraceLinksForm = document.getElementById('createTraceLinks');
+    var selectedRepo = localStorage.getItem('selected_repo');
+    var selectedSourceArtifact = document.getElementById('sourceSelectedArtifact').value;
+    var selectedTargetArtifact = document.getElementById('targetSelectedArtifact').value;
+    if (!selectedRepo) {
+        alert('No repo selected');
+        return;
+    }
+    console.log(selectedSourceArtifact + ' ' + selectedTargetArtifact + ' ' + selectedTraceMethod)
+    var body = {
+        'source_artifact_type': selectedSourceArtifact,
+        'target_artifact_type': selectedTargetArtifact
+    };
+    var deletingLabel = messageLabel('Deleting...');
+    createTraceLinksForm.appendChild(deletingLabel);
+    const uri = 'http://localhost:3000/api/repo/' + selectedRepo + '/trace';
+    const response = await makeApiRequest(uri, 'DELETE', body, false);
+    if (response.status != 200) {
+        console.log('ResponseDeleteTraceLinks: ' + JSON.stringify(response) + response.status);
+        const failed = messageLabel('Failed to delete trace links.');
+        createTraceLinksForm.appendChild(failed);
+        return;
+    }
+    const success = messageLabel('All trace links deleted.');
+    createTraceLinksForm.appendChild(success);
+    updateRepoDetailsSection();
 }
 
 // ----------------------------------------
