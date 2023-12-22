@@ -7,6 +7,8 @@ RUN pip install -r requirements.txt
 COPY . .
 # Layer for packaging
 RUN pip install -e . 
+# Download nltk/spacy data
+RUN python -m spacy download en_core_web_sm
 
 EXPOSE 3000
 

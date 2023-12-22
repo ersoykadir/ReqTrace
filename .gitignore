@@ -229,3 +229,4 @@ dist/
 # Optional
 ner
 trials
+neo4j

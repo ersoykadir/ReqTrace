@@ -91,3 +91,9 @@ Maybe we should just order links based on similarity, How can this be handled in
   - (?<![\.\d])(reqnumber) regex
 
 - python -m spacy download en_core_web_sm
+
+bert tokenizer
+
+- actor-action-object for req
+- issue,
+  - do we have the same action on same object
