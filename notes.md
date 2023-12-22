@@ -92,8 +92,9 @@ Maybe we should just order links based on similarity, How can this be handled in
 
 - python -m spacy download en_core_web_sm
 
-bert tokenizer
+- We can have gpt generate a req and issue set for us, providing a structure and context?
 
+- bert tokenizer
 - actor-action-object for req
 - issue,
   - do we have the same action on same object
