@@ -66,7 +66,7 @@ def filter_before(pages, filter_date):
     return filtered_pages
 
 
-def get_requirements(req_file_data):
+def get_requirements(req_file):
     """
     Assumptions:    The requirements have the format <requirement_number> <requirement_description>
                     The parent of a requirement is the requirement with the same number,
@@ -78,7 +78,7 @@ def get_requirements(req_file_data):
     #     requirements_file_name = f'data_{Config().repo_name}/requirements.txt'
 
     # Parse the HTML content
-    html_content = req_file_data.file.read()
+    html_content = req_file.read()
     soup = BeautifulSoup(html_content, "html.parser")
     # Get the text content without HTML tags
     clean_text = soup.get_text()

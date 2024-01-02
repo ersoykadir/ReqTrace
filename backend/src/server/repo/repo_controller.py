@@ -144,7 +144,7 @@ def populate_repo(
     populate_db_issues(issues, repo_creation_date, repo_id)
     populate_db_prs(pull_requests, repo_creation_date, repo_id)
 
-    requirements = artifacts.get_requirements(requirements_file)
+    requirements = artifacts.get_requirements(requirements_file.file)
     populate_db_requirements(requirements, repo_id)
 
     # Create natural trace links
